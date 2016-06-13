@@ -93,6 +93,12 @@ class Pin(object):
 
         return False
 
+    def is_on(self):
+        return self.read() == 1
+
+    def is_off(self):
+        return self.read() == 0
+
 
 class Input(Pin):
     type = 'Digital Input'
@@ -119,6 +125,12 @@ class Output(Pin):
     def write(self, value):
         GPIO.output(self.pin, value)
         self.led.write(value)
+
+    def on(self):
+        self.write(1)
+
+    def off(self):
+        self.write(0)
 
     def toggle(self):
         self.write(not self.read())
