@@ -21,6 +21,7 @@ OUTPUT_3 = 6
 ads1015 = ads1015(sn3218.i2c)
 
 _led_states = [0] * 18
+_led_dirty = False
 
 sn3218.enable()
 sn3218.enable_leds(0b111111111111111111)
@@ -28,7 +29,6 @@ sn3218.enable_leds(0b111111111111111111)
 class SNLight(object):
     def __init__(self, index, auto_update=True):
         self.index = index
-        self._auto_update = auto_update
         self._max_brightness = float(128)
 
     def toggle(self):
@@ -41,19 +41,19 @@ class SNLight(object):
         return _led_states[self.index]
 
     def write(self, value):
+        global _led_dirty
         if self.index is None:
             return
 
         _led_states[self.index] = int(self._max_brightness * value)
+        _led_dirty = True
 
-        if self._auto_update:
-            sn3218.output(_led_states)
 
 class AnalogInput(object):
     type = 'Analog Input'
 
     def __init__(self, channel, max_voltage, led):
-        self._auto_lights = True
+        self._en_auto_lights = True
         self.channel = channel
         self.max_voltage = float(max_voltage)
         self.led = SNLight(led)
@@ -63,9 +63,9 @@ class AnalogInput(object):
         return ads1015.read(self.channel) * self.max_voltage
 
     def _auto_lights(self):
-        if self._auto_lights:
+        if self._en_auto_lights:
             adc = ads1015.read(self.channel)
-            self.led.write(adc)
+            self.led.write(max(0.0,min(1.0,adc)))
 
 
 class Pin(object):
@@ -98,12 +98,13 @@ class Input(Pin):
     type = 'Digital Input'
 
     def __init__(self, pin, led):
+        self._en_auto_lights = True
         Pin.__init__(self, pin)
         GPIO.setup(self.pin, GPIO.IN)
         self.led = SNLight(led)
 
     def _auto_lights(self):
-        if self._auto_lights:
+        if self._en_auto_lights:
             self.led.write(self.read()) 
 
 
@@ -172,10 +173,18 @@ light._add(power=SNLight(17))
 light._add(comms=SNLight(16))
 light._add(warn=SNLight(15))
 
+
 def _auto_lights():
+    global _led_dirty
+
     input._auto_lights()
     analog._auto_lights()
-    time.sleep(0.1)
+
+    if _led_dirty:
+        sn3218.output(_led_states)
+        _led_dirty = False
+
+    time.sleep(0.01)
 
 _t_auto_lights = AsyncWorker(_auto_lights)
 _t_auto_lights.start()
@@ -186,4 +195,3 @@ def _cleanup():
     sn3218.output([0] * 18)
 
 atexit.register(_cleanup)
-
