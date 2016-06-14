@@ -50,5 +50,5 @@ setup(name		= 'automationhat',
 	py_modules	= [],
 	packages	= ['automationhat'],
 	include_package_data = True,
-	install_requires= []
+	install_requires= ['sn3218']
 )

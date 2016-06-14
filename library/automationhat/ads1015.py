@@ -50,7 +50,7 @@ class ads1015:
 	if value & 0x800:
             value -= 1 << 12
 
-        value /= 2048.0 # Divide down to percentage of FS
+        value /= 2047.0 # Divide down to percentage of FS
         value *= float(programmable_gain)
         value /= 3300.0 # Divide by VCC
 
