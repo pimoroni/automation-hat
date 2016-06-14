@@ -59,8 +59,7 @@ class AnalogInput(object):
         self.led = SNLight(led)
 
     def read(self):
-        adc = ads1015.read(self.channel)
-        return ads1015.read(self.channel) * self.max_voltage
+        return round(ads1015.read(self.channel) * self.max_voltage,3)
 
     def _auto_lights(self):
         if self._en_auto_lights:
