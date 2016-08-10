@@ -55,15 +55,19 @@ class AnalogInput(object):
     def __init__(self, channel, max_voltage, led):
         self._en_auto_lights = True
         self.channel = channel
+        self.value = 0
         self.max_voltage = float(max_voltage)
         self.led = SNLight(led)
 
     def read(self):
-        return round(ads1015.read(self.channel) * self.max_voltage,3)
+        return self.value * self.max_voltage
+
+    def _update(self):
+        self.value = ads1015.read(self.channel)
 
     def _auto_lights(self):
         if self._en_auto_lights:
-            adc = ads1015.read(self.channel)
+            adc = self.value
             self.led.write(max(0.0,min(1.0,adc)))
 
 
@@ -184,6 +188,9 @@ light._add(power=SNLight(17))
 light._add(comms=SNLight(16))
 light._add(warn=SNLight(15))
 
+def _update_adc():
+    analog._update()
+    time.sleep(0.001)
 
 def _auto_lights():
     global _led_dirty
@@ -200,8 +207,12 @@ def _auto_lights():
 _t_auto_lights = AsyncWorker(_auto_lights)
 _t_auto_lights.start()
 
+_t_update_adc = AsyncWorker(_update_adc)
+_t_update_adc.start()
+
 def _cleanup():
     _t_auto_lights.stop()
+    _t_update_adc.stop()
     GPIO.cleanup()
     sn3218.output([0] * 18)
 
