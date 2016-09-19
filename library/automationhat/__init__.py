@@ -32,15 +32,21 @@ class SNLight(object):
         self._max_brightness = float(128)
 
     def toggle(self):
+        """Toggle the light from on to off or off to on"""
         self.write((self._max_brightness - self.read()) / self._max_brightness)
 
     def read(self):
+        """Read the current status of the light"""
         if self.index is None:
             return
 
         return _led_states[self.index]
 
     def write(self, value):
+        """Write a specific value to the light
+
+        :param value: Brightness of the light, from 0.0 to 1.0
+        """
         global _led_dirty
         if self.index is None:
             return
@@ -60,6 +66,7 @@ class AnalogInput(object):
         self.led = SNLight(led)
 
     def read(self):
+        """Return the read voltage of the analog input"""
         return self.value * self.max_voltage
 
     def _update(self):
@@ -126,16 +133,23 @@ class Output(Pin):
         self.led = SNLight(led)
 
     def write(self, value):
+        """Write a value to the output.
+
+        :param value: Value to write, either 1 for HIGH or 0 for LOW
+        """
         GPIO.output(self.pin, value)
         self.led.write(value)
 
     def on(self):
+        """Turn the output on/HIGH"""
         self.write(1)
 
     def off(self):
+        """Turn the output off/LOW"""
         self.write(0)
 
     def toggle(self):
+        """Toggle the output."""
         self.write(not self.read())
 
 
@@ -149,6 +163,10 @@ class Relay(Output):
         self.led_nc = SNLight(led_nc)
 
     def write(self, value):
+        """Write a value to the relay.
+
+        :param value: Value to write, either 0 for LOW or 1 for HIGH
+        """
         GPIO.output(self.pin, value)
 
         if value:
