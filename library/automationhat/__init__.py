@@ -51,8 +51,9 @@ class SNLight(object):
         if self.index is None:
             return
 
-        _led_states[self.index] = int(self._max_brightness * value)
-        _led_dirty = True
+        if type(value) is int and value >= 0 and value <= 1.0:
+            _led_states[self.index] = int(self._max_brightness * value)
+            _led_dirty = True
 
 
 class AnalogInput(object):
@@ -63,7 +64,11 @@ class AnalogInput(object):
         self.channel = channel
         self.value = 0
         self.max_voltage = float(max_voltage)
-        self.led = SNLight(led)
+        self.light = SNLight(led)
+
+    def auto_light(self, value):
+        self._en_auto_lights = value
+        return True
 
     def read(self):
         """Return the read voltage of the analog input"""
@@ -75,7 +80,7 @@ class AnalogInput(object):
     def _auto_lights(self):
         if self._en_auto_lights:
             adc = self.value
-            self.led.write(max(0.0,min(1.0,adc)))
+            self.light.write(max(0.0,min(1.0,adc)))
 
 
 class Pin(object):
@@ -117,20 +122,29 @@ class Input(Pin):
         self._en_auto_lights = True
         Pin.__init__(self, pin)
         GPIO.setup(self.pin, GPIO.IN)
-        self.led = SNLight(led)
+        self.light = SNLight(led)
+
+    def auto_light(self, value):
+        self._en_auto_lights = value
+        return True
 
     def _auto_lights(self):
         if self._en_auto_lights:
-            self.led.write(self.read()) 
+            self.light.write(self.read()) 
 
 
 class Output(Pin):
     type = 'Digital Output'
 
     def __init__(self, pin, led):
+        self._en_auto_lights = True
         Pin.__init__(self, pin)
         GPIO.setup(self.pin, GPIO.OUT)
-        self.led = SNLight(led)
+        self.light = SNLight(led)
+
+    def auto_light(self, value):
+        self._en_auto_lights = value
+        return True
 
     def write(self, value):
         """Write a value to the output.
@@ -138,7 +152,8 @@ class Output(Pin):
         :param value: Value to write, either 1 for HIGH or 0 for LOW
         """
         GPIO.output(self.pin, value)
-        self.led.write(value)
+        if self._en_auto_lights:
+            self.light.write(value)
 
     def on(self):
         """Turn the output on/HIGH"""
@@ -159,8 +174,8 @@ class Relay(Output):
     def __init__(self, pin, led_no, led_nc):
         Pin.__init__(self, pin)
         GPIO.setup(self.pin, GPIO.OUT)
-        self.led_no = SNLight(led_no)
-        self.led_nc = SNLight(led_nc)
+        self.light_no = SNLight(led_no)
+        self.light_nc = SNLight(led_nc)
 
     def write(self, value):
         """Write a value to the relay.
@@ -170,11 +185,11 @@ class Relay(Output):
         GPIO.output(self.pin, value)
 
         if value:
-            self.led_no.write(1)
-            self.led_nc.write(0)
+            self.light_no.write(1)
+            self.light_nc.write(0)
         else:
-            self.led_no.write(0)
-            self.led_nc.write(1)
+            self.light_no.write(0)
+            self.light_nc.write(1)
 
 
 GPIO.setmode(GPIO.BCM)
