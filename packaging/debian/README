@@ -1,0 +1,6 @@
+README
+
+Automation HAT is a home monitoring and automation controller featuring relays, analog channels, powered outputs, and buffered inputs (all 24V tolerant).
+
+Learn more: https://shop.pimoroni.com/products/automation-hat
+For examples run: `curl -sS get.pimoroni.com/automationhat | bash`

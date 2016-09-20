@@ -1,5 +1,6 @@
-import mock
 import sys
+
+import mock
 
 rpi = mock.Mock()
 rpi.GPIO = mock.Mock()
@@ -14,8 +15,10 @@ sn3218.i2c.read_i2c_block_data = mock.Mock(return_value=[0,0,0])
 
 sys.modules['sn3218'] = sn3218
 
-import automationhat
 import RPi.GPIO
+
+import automationhat
+
 
 print("--Lights--")
 assert str(automationhat.light).split(", ") == ["warn","comms","power"], "Lights missing one of [warn, comms, power]: {}".format(str(automationhat.light))

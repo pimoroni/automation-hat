@@ -1,9 +1,10 @@
-import time
 import atexit
+import time
+
+import RPi.GPIO as GPIO
 import sn3218
 
 from ads1015 import ads1015
-import RPi.GPIO as GPIO
 from pins import ObjectCollection, AsyncWorker, StoppableThread
 
 
