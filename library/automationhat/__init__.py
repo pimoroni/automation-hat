@@ -35,6 +35,14 @@ class SNLight(object):
         """Toggle the light from on to off or off to on"""
         self.write((self._max_brightness - self.read()) / self._max_brightness)
 
+    def on(self):
+        """Turn the light on"""
+        self.write(1)
+
+    def off(self):
+        """Turn the light off"""
+        self.write(0)
+
     def read(self):
         """Read the current status of the light"""
         if self.index is None:
