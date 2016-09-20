@@ -1,5 +1,6 @@
 import time
 
+
 ADDR = 0x48
 
 REG_CONV = 0x00
