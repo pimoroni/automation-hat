@@ -21,6 +21,12 @@ Available from Pimoroni: https://shop.pimoroni.com/products/automation-hat
 
 Three of the four analog inputs on Automation HAT are 24v tolerant, with a forth 3.3v input in the breakout header.
 
+You can read an analog input like so:
+
+```python
+value = automationhat.analog.one.read()
+```
+
 ## Inputs
 
 The three inputs on Automation HAT are 24v tolerant, switching on at 3V and off at 1V. Behaviour at voltages between 1V and 3V is undefined.
@@ -28,7 +34,7 @@ The three inputs on Automation HAT are 24v tolerant, switching on at 3V and off 
 You can read an input like so:
 
 ```python
-automationhat.input.one.read()
+value = automationhat.input.one.read()
 ```
 
 ## Outputs
@@ -40,8 +46,6 @@ You can turn an output on like so:
 ```python
 automationhat.output.one.on()
 ```
-
-Outputs are found by name
 
 ## Relays
 

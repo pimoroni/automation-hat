@@ -1,10 +1,11 @@
 import time
-import signal
 import atexit
 import sn3218
+
 from ads1015 import ads1015
 import RPi.GPIO as GPIO
 from pins import ObjectCollection, AsyncWorker, StoppableThread
+
 
 RELAY_1 = 13
 RELAY_2 = 19
@@ -27,7 +28,7 @@ sn3218.enable()
 sn3218.enable_leds(0b111111111111111111)
 
 class SNLight(object):
-    def __init__(self, index, auto_update=True):
+    def __init__(self, index):
         self.index = index
         self._max_brightness = float(128)
 
