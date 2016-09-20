@@ -1,14 +1,16 @@
-import automationhat as ah
 import time
 
-ah.light.power.write(1)
+import automationhat as autohat
+
+
+autohat.light.power.write(1)
 
 while True:
-    ah.light.comms.toggle()
-    ah.light.warn.toggle()
-    ah.relay.one.toggle()
-    ah.relay.two.toggle()
-    ah.relay.three.toggle()
-    ah.output.toggle()
-    print(ah.analog.read())
+    autohat.light.comms.toggle()
+    autohat.light.warn.toggle()
+    autohat.relay.one.toggle()
+    autohat.relay.two.toggle()
+    autohat.relay.three.toggle()
+    autohat.output.toggle()
+    print(autohat.analog.read())
     time.sleep(0.5)
