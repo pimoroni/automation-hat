@@ -10,7 +10,7 @@ Available from Pimoroni: https://shop.pimoroni.com/products/automation-hat
 * 3 x 24V tolerant sinking outputs
 * 15 x channel indicator LEDs
 * 1 x 12-bit ADC @ 0-3.3V
-* 3.5mm scrw terminals
+* 3.5mm screw terminals
 * Power, Comms, and Warn! LED indicators
 * SPI interface broken out
 * Extra GPIO: TX (#14), RX (#15), #25
@@ -19,7 +19,7 @@ Available from Pimoroni: https://shop.pimoroni.com/products/automation-hat
 
 ## Analog
 
-Three of the four analog inputs on Automation HAT are 24v tolerant, with a forth 3.3v input in the breakout header.
+Three of the four analog inputs on Automation HAT are 24V tolerant, with a forth 3.3V input in the breakout header.
 
 You can read an analog input like so:
 
@@ -29,17 +29,17 @@ value = automationhat.analog.one.read()
 
 ## Inputs
 
-The three inputs on Automation HAT are 24v tolerant, switching on at 3V and off at 1V. Behaviour at voltages between 1V and 3V is undefined.
+The three inputs on Automation HAT are 24V tolerant, switching on at 3V and off at 1V. Behaviour at voltages between 1V and 3V is undefined.
 
 You can read an input like so:
 
 ```python
-value = automationhat.input.one.read()
+state = automationhat.input.one.read()
 ```
 
 ## Outputs
 
-The three outputs on Automation HAT are 24v tolerant, sinking outputs. That means you should connect them between your load and ground. They act like a switch down to ground, toggling your load on and off.
+The three outputs on Automation HAT are 24V tolerant, sinking outputs. That means you should connect them between your load and ground. They act like a switch down to ground, toggling your load on and off.
 
 You can turn an output on like so:
 
@@ -77,7 +77,7 @@ automationhat.relay.write(1) # 1 = ON, 0 = OFF
 
 ## Lights
 
-Automation HAT includes three user-controllable lights- Power, Comms and Warn. You can take control of these lights to turn them on/off or write a brightness value:
+Automation HAT includes three user-controllable lights: Power, Comms and Warn. You can take control of these lights to turn them on/off or write a brightness value:
 
 ```python
 automationhat.light.comms.on()
@@ -89,7 +89,7 @@ automationhat.light.warn.off()
 
 Note: lights use the same methods as relays and outputs: `on`, `off`, `toggle` and `write`.
 
-Lights associated with Inputs, Outputs, Relays and Analog are automatic by default, but you can switch them to manual if you want. First turn off the automation-
+Lights associated with Inputs, Outputs, Relays and Analog are automatic by default, but you can switch them to manual if you want. First turn off the automation:
 
 ```python
 automationhat.analog.one.auto_light(False)
