@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import time
 import sys
 
 import mock
@@ -36,96 +37,127 @@ import RPi.GPIO
 import automationhat
 
 def test(verbose=False):
+
+    def gpio_set(pin, value):
+        global pinstates
+        pinstates[pin] = value
+
     def debug(msg):
         if verbose:
             print(msg)
 
-    debug("--Lights--")
+    debug("testing: Lights")
+
     assert str(automationhat.light).split(", ") == ["warn","comms","power"], "Lights missing one of [warn, comms, power]: {}".format(str(automationhat.light))
-    debug(automationhat.light)
 
-    # Test write/toggle
-    try:
-        assert type(automationhat.light.write(1)) == dict, "light.write(1) not returning dict"
-        assert type(automationhat.light.write(0)) == dict, "light.write(0) not returning dict"
-        assert type(automationhat.light.toggle()) == dict, "light.toggle() not returning dict"
-        assert type(automationhat.light.toggle()) == dict, "light.toggle() not returning dict"
-        assert type(automationhat.light.on()) == dict, "light.oncd ,8() not returning dict"
-        assert type(automationhat.light.off()) == dict, "light.off() not returning dict"
-    except Exception as e:
-        sys.exit("ERROR: {}".format(e))
+    for light in automationhat.light:
+        debug("         light {}".format(light.name))
 
-    debug("")
+        assert callable(light.write), "light.write() not callable"
+        assert callable(light.toggle), "light.toggle() not callable"
+        assert callable(light.on), "light.on() not callable"
+        assert callable(light.off), "light.off() not callable"
 
-    debug("--Relays--")
-    debug(automationhat.relay)
+
+    debug("testing: Relays")
 
     assert str(automationhat.relay).split(", ") == ["three","two","one"], "Relay missing one of [one, two, three]: {}".format(str(automationhat.relay))
 
     # Test all relays have associated lights
     for relay in automationhat.relay:
+        debug("         relay {}".format(relay.name))
+
         assert isinstance(relay.light_no, automationhat.SNLight), "Relay missing NO light"
         assert isinstance(relay.light_nc, automationhat.SNLight), "Relay missing NC light"
 
-    try:
-        debug("Turning relays on...")
-        assert type(automationhat.relay.write(1)) == dict, "relay.write(1) not returning dict"
-        for relay in automationhat.relay:
-            assert pinstates[relay.pin] == 1, "pin {} not set HIGH for Relay {}".format(relay.pin, relay.name)
+        assert callable(relay.on), "relay.on() not callable"
+        relay.on() # Should transition from LOW to HIGH
+        assert pinstates[relay.pin] == 1, "pin {} not set HIGH for Relay {}".format(relay.pin, relay.name)
 
-        debug("Turning relays off...") 
-        assert type(automationhat.relay.write(0)) == dict, "relay.write(0) not returning dict"
-        for relay in automationhat.relay:
-            assert pinstates[relay.pin] == 0, "pin {} not set LOW for Relay {}".format(relay.pin, relay.name)
+        assert callable(relay.off), "relay.off() not callable"
+        relay.off() # Should transition from HIGH to LOW
+        assert pinstates[relay.pin] == 0, "pin {} not set LOW for Relay {}".format(relay.pin, relay.name)
 
-        debug("Toggling relays...")
-        assert type(automationhat.relay.toggle()) == dict, "relay.toggle() not returning dict"
-        for relay in automationhat.relay:
-            assert pinstates[relay.pin] == 1, "pin {} not set HIGH for Relay {}".format(relay.pin, relay.name)
+        assert callable(relay.toggle), "relay.toggle() not callable"
+        relay.toggle() # Should transition from LOW to HIGH
+        assert pinstates[relay.pin] == 1, "pin {} not set HIGH for Relay {}".format(relay.pin, relay.name)
+        relay.toggle() # Should transition from HIGH to LOW
+        assert pinstates[relay.pin] == 0, "pin {} not set LOW for Relay {}".format(relay.pin, relay.name)
 
-        debug("Toggling relays again...")
-        assert type(automationhat.relay.toggle()) == dict, "relay.toggle() not returning dict"
-        for relay in automationhat.relay:
-            assert pinstates[relay.pin] == 0, "pin {} not set LOW for Relay {}".format(relay.pin, relay.name)
 
-    except Exception as e:
-        sys.exit("ERROR: {}".format(e))
+    debug("testing: Digital Outputs")
 
-    debug("")
-
-    debug("--Digital Outputs--")
     assert str(automationhat.output).split(", ") == ["three","two","one"], "Output missing one of [one, two, three]: {}".format(str(automationhat.output))
-    debug(automationhat.output)
 
     # Test all outputs have associated lights
     for output in automationhat.output:
+        debug("         output {}".format(output.name))
+
         assert isinstance(output.light, automationhat.SNLight), "Missing SNLight from output"
+        output.on()
+        assert pinstates[output.pin] == 1, "pin {} not set HIGH for Output {}".format(output.pin, output.name)
+        output.off()
+        assert pinstates[output.pin] == 0, "pin {} not set LOW for Output {}".format(output.pin, output.name)
 
-    debug("")
-
-    debug("--Digital Inputs--")
-    debug(automationhat.input)
-    assert automationhat.input.one.read() == 0, "Input reading HIGH, should be LOW"
-    debug(automationhat.input.read())
+    debug("testing: Digital Inputs")
 
     # Test all inputs have associated lights
     for input in automationhat.input:
+        debug("         input {}".format(input.name))
+
+        assert callable(input.read), "input.read() not callable!"
+        assert input.read() == 0, "Input reading HIGH, should be LOW"
+        gpio_set(input.pin, 1)
+        assert input.read() == 1, "Input reading LOW, should be HIGH"
         assert isinstance(input.light, automationhat.SNLight), "Missing SNLight from input"
 
-    debug("")
 
-    debug("--Analog Inputs--")
-    debug(automationhat.analog)
+    debug("testing: Analog Inputs")
 
-    automationhat.analog.auto_light(False)
-    assert automationhat.analog.one._en_auto_lights == False, "Auto lights should be False/Disabled"
+    for analog in automationhat.analog:
+        debug("         analog {}".format(analog.name))
 
-    automationhat.analog.auto_light(True)
-    assert automationhat.analog.one._en_auto_lights == True, "Auto lights should be True/Enabled"
+        analog.auto_light(False)
+        assert analog._en_auto_lights == False, "Auto lights should be False/Disabled"
 
-    debug(automationhat.analog.read())
-    debug("")
-    debug("ALL OKAY!")
+        analog.auto_light(True)
+        assert analog._en_auto_lights == True, "Auto lights should be True/Enabled"
+
+
+        assert callable(analog.read), "analog.read() not callable!"
+
+        # The full scale range of the ADC at 1:1 is +- 4.096v
+        # so we adjust our mock value to obtain the max value at 3.3v
+        analog_raw = int(3300.0 * (2047.0 / 4096.0))
+
+        debug("         - max value")
+
+        sn3218.i2c.read_i2c_block_data = mock.Mock(return_value=[
+            (analog_raw >> 4) & 0xff,
+            (analog_raw << 4) & 0xff
+            ,0])
+
+        time.sleep(0.01)
+
+        assert analog.read() == analog.max_voltage, "analog.read() returning {}, should be {}!".format(analog.read(), analog.max_voltage)
+
+        analog_raw = int(1650.0 * (2047.0 / 4096.0))
+
+        debug("         - half value")
+
+        sn3218.i2c.read_i2c_block_data = mock.Mock(return_value=[
+            (analog_raw >> 4) & 0xff,
+            (analog_raw << 4) & 0xff
+            ,0])
+
+        time.sleep(0.01)
+
+        voltage = round((analog.max_voltage / 2.0) - 0.005, 2)
+        assert analog.read() == voltage, "analog.read() returning {}, should be {}!".format(analog.read(), voltage)
+
+
+    debug("status:  Ok!")
+
     return True
 
 if __name__ == "__main__":
