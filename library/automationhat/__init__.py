@@ -35,7 +35,7 @@ class SNLight(object):
 
     def toggle(self):
         """Toggle the light from on to off or off to on"""
-        self.write((self._max_brightness - self.read()) / self._max_brightness)
+        self.write(1 - self.read())
 
     def on(self):
         """Turn the light on"""
@@ -50,7 +50,7 @@ class SNLight(object):
         if self.index is None:
             return
 
-        return _led_states[self.index]
+        return _led_states[self.index] / self._max_brightness
 
     def write(self, value):
         """Write a specific value to the light
@@ -61,9 +61,14 @@ class SNLight(object):
         if self.index is None:
             return
 
-        if type(value) is int and value >= 0 and value <= 1.0:
+        if type(value) is not int and type(value) is not float:
+            raise TypeError("Value must be int or float")
+
+        if value >= 0 and value <= 1.0:
             _led_states[self.index] = int(self._max_brightness * value)
             _led_dirty = True
+        else:
+            raise ValueError("Value must be between 0.0 and 1.0")
 
 
 class AnalogInput(object):
