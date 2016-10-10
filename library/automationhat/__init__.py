@@ -2,7 +2,6 @@ import atexit
 import time
 
 import RPi.GPIO as GPIO
-import sn3218
 
 from ads1015 import ads1015
 from pins import ObjectCollection, AsyncWorker, StoppableThread
@@ -20,13 +19,24 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
-ads1015 = ads1015(sn3218.i2c)
+sn3218 = None
+i2c = None
+
+try:
+    import sn3218
+    i2c = sn3218.i2c
+    sn3218.enable()
+    sn3218.enable_leds(0b111111111111111111)
+except IOError:
+    import smbus
+    i2c = smbus.SMBus(1)
+    pass
+
+ads1015 = ads1015(i2c)
 
 _led_states = [0] * 18
 _led_dirty = False
 
-sn3218.enable()
-sn3218.enable_leds(0b111111111111111111)
 
 class SNLight(object):
     def __init__(self, index):
@@ -227,14 +237,21 @@ output._add(two=Output(OUTPUT_2, 4))
 output._add(three=Output(OUTPUT_3, 5))
 
 relay = ObjectCollection()
-relay._add(one=Relay(RELAY_1, 6, 7))
-relay._add(two=Relay(RELAY_2, 8, 9))
-relay._add(three=Relay(RELAY_3, 10, 11))
+
+if sn3218 is None:
+    relay._add(one=Relay(RELAY_3, 0, 0))
+
+else:
+    relay._add(one=Relay(RELAY_1, 6, 7))
+    relay._add(two=Relay(RELAY_2, 8, 9))
+    relay._add(three=Relay(RELAY_3, 10, 11))
 
 light = ObjectCollection()
-light._add(power=SNLight(17))
-light._add(comms=SNLight(16))
-light._add(warn=SNLight(15))
+
+if sn3218 is not None:
+    light._add(power=SNLight(17))
+    light._add(comms=SNLight(16))
+    light._add(warn=SNLight(15))
 
 def _update_adc():
     analog._update()
@@ -252,16 +269,19 @@ def _auto_lights():
 
     time.sleep(0.01)
 
-_t_auto_lights = AsyncWorker(_auto_lights)
-_t_auto_lights.start()
+if sn3218 is not None:
+    _t_auto_lights = AsyncWorker(_auto_lights)
+    _t_auto_lights.start()
 
 _t_update_adc = AsyncWorker(_update_adc)
 _t_update_adc.start()
 
 def _cleanup():
-    _t_auto_lights.stop()
+    if sn3218 is not None:
+        _t_auto_lights.stop()
+        sn3218.output([0] * 18)
+
     _t_update_adc.stop()
     GPIO.cleanup()
-    sn3218.output([0] * 18)
 
 atexit.register(_cleanup)
