@@ -87,7 +87,7 @@ class AnalogInput(object):
 
     def read(self):
         """Return the read voltage of the analog input"""
-        return self.value * self.max_voltage
+        return round(self.value * self.max_voltage, 2)
 
     def _update(self):
         self.value = ads1015.read(self.channel)
