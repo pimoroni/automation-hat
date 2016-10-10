@@ -154,7 +154,7 @@ class Output(Pin):
     def __init__(self, pin, led):
         self._en_auto_lights = True
         Pin.__init__(self, pin)
-        GPIO.setup(self.pin, GPIO.OUT)
+        GPIO.setup(self.pin, GPIO.OUT, initial=0)
         self.light = SNLight(led)
 
     def auto_light(self, value):
@@ -168,7 +168,7 @@ class Output(Pin):
         """
         GPIO.output(self.pin, value)
         if self._en_auto_lights:
-            self.light.write(value)
+            self.light.write(1 if value else 0)
 
     def on(self):
         """Turn the output on/HIGH"""
