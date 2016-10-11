@@ -224,7 +224,9 @@ analog = ObjectCollection()
 analog._add(one=AnalogInput(0, 25.85, 0))
 analog._add(two=AnalogInput(1, 25.85, 1))
 analog._add(three=AnalogInput(2, 25.85, 2))
-analog._add(four=AnalogInput(3, 3.3, None))
+
+if sn3218 is not None:
+    analog._add(four=AnalogInput(3, 3.3, None))
 
 input = ObjectCollection()
 input._add(one=Input(INPUT_1, 14))
