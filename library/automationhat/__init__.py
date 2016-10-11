@@ -2,7 +2,6 @@ import atexit
 import time
 
 import RPi.GPIO as GPIO
-import sn3218
 
 from ads1015 import ads1015
 from pins import ObjectCollection, AsyncWorker, StoppableThread
@@ -20,13 +19,24 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
-ads1015 = ads1015(sn3218.i2c)
+sn3218 = None
+i2c = None
+
+try:
+    import sn3218
+    i2c = sn3218.i2c
+    sn3218.enable()
+    sn3218.enable_leds(0b111111111111111111)
+except IOError:
+    import smbus
+    i2c = smbus.SMBus(1)
+    pass
+
+ads1015 = ads1015(i2c)
 
 _led_states = [0] * 18
 _led_dirty = False
 
-sn3218.enable()
-sn3218.enable_leds(0b111111111111111111)
 
 class SNLight(object):
     def __init__(self, index):
@@ -35,7 +45,7 @@ class SNLight(object):
 
     def toggle(self):
         """Toggle the light from on to off or off to on"""
-        self.write((self._max_brightness - self.read()) / self._max_brightness)
+        self.write(1 - self.read())
 
     def on(self):
         """Turn the light on"""
@@ -50,7 +60,7 @@ class SNLight(object):
         if self.index is None:
             return
 
-        return _led_states[self.index]
+        return _led_states[self.index] / self._max_brightness
 
     def write(self, value):
         """Write a specific value to the light
@@ -61,9 +71,14 @@ class SNLight(object):
         if self.index is None:
             return
 
-        if type(value) is int and value >= 0 and value <= 1.0:
+        if type(value) is not int and type(value) is not float:
+            raise TypeError("Value must be int or float")
+
+        if value >= 0 and value <= 1.0:
             _led_states[self.index] = int(self._max_brightness * value)
             _led_dirty = True
+        else:
+            raise ValueError("Value must be between 0.0 and 1.0")
 
 
 class AnalogInput(object):
@@ -82,7 +97,7 @@ class AnalogInput(object):
 
     def read(self):
         """Return the read voltage of the analog input"""
-        return self.value * self.max_voltage
+        return round(self.value * self.max_voltage, 2)
 
     def _update(self):
         self.value = ads1015.read(self.channel)
@@ -149,7 +164,7 @@ class Output(Pin):
     def __init__(self, pin, led):
         self._en_auto_lights = True
         Pin.__init__(self, pin)
-        GPIO.setup(self.pin, GPIO.OUT)
+        GPIO.setup(self.pin, GPIO.OUT, initial=0)
         self.light = SNLight(led)
 
     def auto_light(self, value):
@@ -163,7 +178,7 @@ class Output(Pin):
         """
         GPIO.output(self.pin, value)
         if self._en_auto_lights:
-            self.light.write(value)
+            self.light.write(1 if value else 0)
 
     def on(self):
         """Turn the output on/HIGH"""
@@ -209,7 +224,9 @@ analog = ObjectCollection()
 analog._add(one=AnalogInput(0, 25.85, 0))
 analog._add(two=AnalogInput(1, 25.85, 1))
 analog._add(three=AnalogInput(2, 25.85, 2))
-analog._add(four=AnalogInput(3, 3.3, None))
+
+if sn3218 is not None:
+    analog._add(four=AnalogInput(3, 3.3, None))
 
 input = ObjectCollection()
 input._add(one=Input(INPUT_1, 14))
@@ -222,14 +239,21 @@ output._add(two=Output(OUTPUT_2, 4))
 output._add(three=Output(OUTPUT_3, 5))
 
 relay = ObjectCollection()
-relay._add(one=Relay(RELAY_1, 6, 7))
-relay._add(two=Relay(RELAY_2, 8, 9))
-relay._add(three=Relay(RELAY_3, 10, 11))
+
+if sn3218 is None:
+    relay._add(one=Relay(RELAY_3, 0, 0))
+
+else:
+    relay._add(one=Relay(RELAY_1, 6, 7))
+    relay._add(two=Relay(RELAY_2, 8, 9))
+    relay._add(three=Relay(RELAY_3, 10, 11))
 
 light = ObjectCollection()
-light._add(power=SNLight(17))
-light._add(comms=SNLight(16))
-light._add(warn=SNLight(15))
+
+if sn3218 is not None:
+    light._add(power=SNLight(17))
+    light._add(comms=SNLight(16))
+    light._add(warn=SNLight(15))
 
 def _update_adc():
     analog._update()
@@ -247,16 +271,19 @@ def _auto_lights():
 
     time.sleep(0.01)
 
-_t_auto_lights = AsyncWorker(_auto_lights)
-_t_auto_lights.start()
+if sn3218 is not None:
+    _t_auto_lights = AsyncWorker(_auto_lights)
+    _t_auto_lights.start()
 
 _t_update_adc = AsyncWorker(_update_adc)
 _t_update_adc.start()
 
 def _cleanup():
-    _t_auto_lights.stop()
+    if sn3218 is not None:
+        _t_auto_lights.stop()
+        sn3218.output([0] * 18)
+
     _t_update_adc.stop()
     GPIO.cleanup()
-    sn3218.output([0] * 18)
 
 atexit.register(_cleanup)

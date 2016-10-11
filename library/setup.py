@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+try:
+    import test
+except:
+    pass
+
 """
 Copyright (c) 2014 Pimoroni
 
@@ -23,9 +28,35 @@ SOFTWARE.
 """
 
 try:
-    from setuptools import setup
+    from setuptools import setup, Command
+    from setuptools.command.build import build
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, Command
+    from distutils.command.build import build
+
+class BuildWithTests(build):
+    def run(self):
+        if test is not None and test.test is not None:
+            assert test.test() == True, "Automated tests failed!"
+            print("notice  all tests passed: OK!")
+        else:
+            print("notice  automated tests skipped!")
+
+        build.run(self)
+
+class TestCommand(Command):
+    description = "Runs Automation HAT tests"
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        if test is not None and test.test is not None:
+            assert test.test() == True, "Automated tests failed!"
+            print("notice  all tests passed: OK!")
+        else:
+            print("notice  automated tests skipped!")
 
 classifiers = ['Development Status :: 5 - Production/Stable',
                'Operating System :: POSIX :: Linux',
@@ -38,17 +69,18 @@ classifiers = ['Development Status :: 5 - Production/Stable',
                'Topic :: System :: Hardware']
 
 setup(name		= 'automationhat',
-	version		= '0.0.1',
-	author		= 'Philip Howard',
-	author_email	= 'phil@pimoroni.com',
-	description	= 'Automation HAT Driver',
-	long_description= open('README.txt').read() + open('CHANGELOG.txt').read(),
-	license		= 'MIT',
-	keywords	= 'Raspberry Pi automation controller',
-	url		= 'http://www.pimoroni.com',
-	classifiers	= classifiers,
-	py_modules	= [],
-	packages	= ['automationhat'],
-	include_package_data = True,
-	install_requires= ['RPi.GPIO','sn3218']
+        version		= '0.0.1',
+        author		= 'Philip Howard',
+        author_email	= 'phil@pimoroni.com',
+        description	= 'Automation HAT Driver',
+        long_description= open('README.txt').read() + open('CHANGELOG.txt').read(),
+        license		= 'MIT',
+        keywords	= 'Raspberry Pi automation controller',
+        url		= 'http://www.pimoroni.com',
+        classifiers	= classifiers,
+        py_modules	= [],
+        packages	= ['automationhat'],
+        include_package_data = True,
+        install_requires= ['RPi.GPIO','sn3218'],
+        cmdclass        = {'test': TestCommand, 'testandbuild':BuildWithTests}
 )
