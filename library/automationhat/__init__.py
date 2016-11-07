@@ -4,7 +4,7 @@ from sys import exit, version_info
 
 try:
     import sn3218
-except ImportError:
+except ImportError, IOError:
     try:
         from smbus import SMBus
     except ImportError:
@@ -43,7 +43,7 @@ try:
     i2c = sn3218.i2c
     sn3218.enable()
     sn3218.enable_leds(0b111111111111111111)
-except IOError, AttributeError:
+except AttributeError:
     i2c = SMBus(1)
     pass
 
