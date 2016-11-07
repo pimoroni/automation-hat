@@ -4,7 +4,7 @@ from sys import exit, version_info
 
 try:
     import sn3218
-except ImportError, IOError:
+except (ImportError, IOError):
     try:
         from smbus import SMBus
     except ImportError:
