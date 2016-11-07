@@ -36,7 +36,6 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
-sn3218 = None
 i2c = None
 
 try:
@@ -45,6 +44,7 @@ try:
     sn3218.enable_leds(0b111111111111111111)
 except AttributeError:
     i2c = SMBus(1)
+    sn3218 = None
     pass
 
 ads1015 = ads1015(i2c)
