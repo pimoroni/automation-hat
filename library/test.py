@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+
 import time
 import sys
 
 import mock
+
 
 pinstates = [0 for x in range(40)]
 

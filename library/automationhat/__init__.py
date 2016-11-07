@@ -1,11 +1,21 @@
 import atexit
 import time
+from sys import exit
 
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    exit("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
+
+try:
+    import sn3218
+except ImportError:
+    exit("This library requires the sn3218 module\nInstall with: sudo pip install sn3218")
 
 from ads1015 import ads1015
 from pins import ObjectCollection, AsyncWorker, StoppableThread
 
+__version__ = '0.0.1'
 
 RELAY_1 = 13
 RELAY_2 = 19
@@ -19,18 +29,9 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
-sn3218 = None
-i2c = None
-
-try:
-    import sn3218
-    i2c = sn3218.i2c
-    sn3218.enable()
-    sn3218.enable_leds(0b111111111111111111)
-except IOError:
-    import smbus
-    i2c = smbus.SMBus(1)
-    pass
+i2c = sn3218.i2c
+sn3218.enable()
+sn3218.enable_leds(0b111111111111111111)
 
 ads1015 = ads1015(i2c)
 
