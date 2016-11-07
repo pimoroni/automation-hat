@@ -43,7 +43,7 @@ try:
     i2c = sn3218.i2c
     sn3218.enable()
     sn3218.enable_leds(0b111111111111111111)
-except IOError:
+except AttributeError:
     i2c = SMBus(1)
     pass
 
