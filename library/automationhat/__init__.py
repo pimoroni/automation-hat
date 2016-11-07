@@ -1,19 +1,26 @@
 import atexit
 import time
-from sys import exit
+from sys import exit, version_info
+
+try:
+    import sn3218
+except ImportError:
+    try:
+        from smbus import SMBus
+    except ImportError:
+            if version_info[0] < 3:
+                exit("This library requires python-smbus\nInstall with: sudo apt-get install python-smbus")
+            elif version_info[0] == 3:
+                exit("This library requires python3-smbus\nInstall with: sudo apt-get install python3-smbus")
 
 try:
     import RPi.GPIO as GPIO
 except ImportError:
     exit("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
 
-try:
-    import sn3218
-except ImportError:
-    exit("This library requires the sn3218 module\nInstall with: sudo pip install sn3218")
-
 from ads1015 import ads1015
 from pins import ObjectCollection, AsyncWorker, StoppableThread
+
 
 __version__ = '0.0.1'
 
@@ -29,9 +36,16 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
-i2c = sn3218.i2c
-sn3218.enable()
-sn3218.enable_leds(0b111111111111111111)
+sn3218 = None
+i2c = None
+
+try:
+    i2c = sn3218.i2c
+    sn3218.enable()
+    sn3218.enable_leds(0b111111111111111111)
+except IOError:
+    i2c = SMBus(1)
+    pass
 
 ads1015 = ads1015(i2c)
 
