@@ -22,7 +22,7 @@ from ads1015 import ads1015
 from pins import ObjectCollection, AsyncWorker, StoppableThread
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 RELAY_1 = 13
 RELAY_2 = 19
