@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: blinkt
-Source: https://github.com/pimoroni/blinkt
+Upstream-Name: automationhat
+Source: https://github.com/pimoroni/automation-hat
 
 Files: *
 Copyright: 2016 Pimoroni Ltd <phil@pimoroni.com>

@@ -1,4 +1,13 @@
+0.0.2
+-----
+
+* Added pHAT support
+* Rounded ADC output to 2 decimal places
+* Set initial state for outputs and fixed toggling
+* Fixed light toggling
+
 0.0.1
 -----
 
 * Initial Release
+
