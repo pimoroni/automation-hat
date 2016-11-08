@@ -22,7 +22,7 @@ from ads1015 import ads1015
 from pins import ObjectCollection, AsyncWorker, StoppableThread
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 RELAY_1 = 13
 RELAY_2 = 19
@@ -42,7 +42,7 @@ try:
     i2c = sn3218.i2c
     sn3218.enable()
     sn3218.enable_leds(0b111111111111111111)
-except AttributeError:
+except NameError:
     i2c = SMBus(1)
     sn3218 = None
     pass
