@@ -2,13 +2,15 @@
 
 import time
 
-import automationhat as autohat
+import automationhat
 
 
-autohat.light.power.write(1)
+if len(automationhat.light) > 0:
+    automationhat.light.power.write(1)
 
 while True:
-    autohat.relay.one.toggle()
-    autohat.relay.two.toggle()
-    autohat.relay.three.toggle()
+    automationhat.relay.one.toggle()
+    if len(automationhat.relay) > 1:
+        automationhat.relay.two.toggle()
+        automationhat.relay.three.toggle()
     time.sleep(0.1)
