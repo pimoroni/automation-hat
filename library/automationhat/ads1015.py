@@ -48,7 +48,7 @@ class ads1015:
 
         value = ((data[0] << 4) | (data[1] >> 4))
 
-	if value & 0x800:
+        if value & 0x800:
             value -= 1 << 12
 
         value /= 2047.0 # Divide down to percentage of FS
