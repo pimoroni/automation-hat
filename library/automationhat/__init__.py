@@ -18,8 +18,8 @@ try:
 except ImportError:
     exit("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
 
-from ads1015 import ads1015
-from pins import ObjectCollection, AsyncWorker, StoppableThread
+from .ads1015 import ads1015
+from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
 
 __version__ = '0.0.2'
