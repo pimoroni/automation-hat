@@ -5,7 +5,7 @@ import time
 import automationhat
 
 
-if len(automationhat.light) > 0:
+if automationhat.is_automation_hat():
     automationhat.light.power.write(1)
 
 while True:
