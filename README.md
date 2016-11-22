@@ -1,23 +1,33 @@
-# Automation HAT
+# Automation HAT & pHAT
 
 We've pulled together a great set of features into this home monitoring and automation controller. Relays, analog channels, powered outputs, and buffered inputs (all 24V tolerant) mean you can now hook up a plethora of goodies to your Raspberry Pi.
 
-Available from Pimoroni: https://shop.pimoroni.com/products/automation-hat
+Available from Pimoroni:
+
+* https://shop.pimoroni.com/products/automation-hat
+* https://shop.pimoroni.com/products/automation-phat
+
+Features:
 
 * 24V @ 2A relay (NC and NO terminals)
 * 3 x 12-bit ADC @ 0-24V
 * 3 x 24V tolerant buffered inputs
 * 3 x 24V tolerant sinking outputs
-* 15 x channel indicator LEDs
-* 1 x 12-bit ADC @ 0-3.3V
+* 15 x channel indicator LEDs (HAT only)
+* 1 x 12-bit ADC @ 0-3.3V (HAT only)
 * 3.5mm screw terminals
-* Power, Comms, and Warn! LED indicators
+* Power, Comms, and Warn! LED indicators (HAT only)
 * SPI interface broken out
 * Extra GPIO: TX (#14), RX (#15), #25
 
-# Usage
+## Documentation & Support
 
-## Analog
+* Automation HAT GPIO Pinout - https://pinout.xyz/pinout/automation_hat
+* Get help - http://forums.pimoroni.com/c/support
+
+## Usage
+
+### Analog
 
 Three of the four analog inputs on Automation HAT are 24V tolerant, with a forth 3.3V input in the breakout header.
 
@@ -27,7 +37,7 @@ You can read an analog input like so:
 value = automationhat.analog.one.read()
 ```
 
-## Inputs
+### Inputs
 
 The three inputs on Automation HAT are 24V tolerant, switching on at 3V and off at 1V. Behaviour at voltages between 1V and 3V is undefined.
 
@@ -37,7 +47,7 @@ You can read an input like so:
 state = automationhat.input.one.read()
 ```
 
-## Outputs
+### Outputs
 
 The three outputs on Automation HAT are 24V tolerant, sinking outputs. That means you should connect them between your load and ground. They act like a switch down to ground, toggling your load on and off.
 
@@ -47,7 +57,7 @@ You can turn an output on like so:
 automationhat.output.one.on()
 ```
 
-## Relays
+### Relays
 
 The three relays on Automation HAT supply both NO (Normally Open) and NC (Normally Closed) terminals. You can use them to switch a single load, or alternate between two. The relays should be placed between the voltage supply and your load.
 
@@ -75,7 +85,7 @@ Or write a specific value:
 automationhat.relay.write(1) # 1 = ON, 0 = OFF
 ```
 
-## Lights
+### Lights
 
 Automation HAT includes three user-controllable lights: Power, Comms and Warn. You can take control of these lights to turn them on/off or write a brightness value:
 
