@@ -1,4 +1,4 @@
-# Automation HAT & pHAT
+![Automation HAT](autohat_360.png)
 
 We've pulled together a great set of features into this home monitoring and automation controller. Relays, analog channels, powered outputs, and buffered inputs (all 24V tolerant) mean you can now hook up a plethora of goodies to your Raspberry Pi.
 
@@ -19,6 +19,23 @@ Features:
 * Power, Comms, and Warn! LED indicators (HAT only)
 * SPI interface broken out
 * Extra GPIO: TX (#14), RX (#15), #25
+
+##Installation
+
+**Full install ( recommended ):**
+
+We've created a super-easy installation script that will install all pre-requisites and get your Automation HAT or pHAT up and running in a jiffy. To run it fire up Terminal which you'll find in Menu -> Accessories -> Terminal on your Raspberry Pi desktop like so:
+
+![Finding the terminal](terminal.jpg)
+
+In the new terminal window type:
+
+```bash
+curl -sS https://get.pimoroni.com/automationhat | bash
+```
+
+If you choose to download examples you'll find them in `/home/pi/Pimoroni/automationhat`.
+
 
 ## Documentation & Support
 
