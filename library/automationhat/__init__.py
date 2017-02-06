@@ -24,6 +24,10 @@ from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
 __version__ = '0.0.3'
 
+
+automation_hat = False
+automation_phat = False
+
 RELAY_1 = 13
 RELAY_2 = 19
 RELAY_3 = 16
@@ -232,6 +236,21 @@ class Relay(Output):
             self.light_nc.write(1)
 
 
+def is_automation_hat():
+    return automation_hat
+
+def is_automation_phat():
+    return automation_phat
+
+
+if sn3218 is not None:
+    print("Automation HAT detected...")
+    automation_hat - True
+else:
+    print("Automation pHAT detected...")
+    automation_phat - True
+
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
@@ -240,7 +259,7 @@ analog._add(one=AnalogInput(0, 25.85, 0))
 analog._add(two=AnalogInput(1, 25.85, 1))
 analog._add(three=AnalogInput(2, 25.85, 2))
 
-if sn3218 is not None:
+if is_automation_hat():
     analog._add(four=AnalogInput(3, 3.3, None))
 
 input = ObjectCollection()
@@ -255,7 +274,7 @@ output._add(three=Output(OUTPUT_3, 5))
 
 relay = ObjectCollection()
 
-if sn3218 is None:
+if is_automation_phat():
     relay._add(one=Relay(RELAY_3, 0, 0))
 
 else:
@@ -265,7 +284,7 @@ else:
 
 light = ObjectCollection()
 
-if sn3218 is not None:
+if is_automation_hat():
     light._add(power=SNLight(17))
     light._add(comms=SNLight(16))
     light._add(warn=SNLight(15))
@@ -286,7 +305,7 @@ def _auto_lights():
 
     time.sleep(0.01)
 
-if sn3218 is not None:
+if is_automation_hat():
     _t_auto_lights = AsyncWorker(_auto_lights)
     _t_auto_lights.start()
 
@@ -294,7 +313,7 @@ _t_update_adc = AsyncWorker(_update_adc)
 _t_update_adc.start()
 
 def _cleanup():
-    if sn3218 is not None:
+    if is_automation_hat():
         _t_auto_lights.stop()
         sn3218.output([0] * 18)
 
