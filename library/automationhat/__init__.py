@@ -245,10 +245,10 @@ def is_automation_phat():
 
 if sn3218 is not None:
     print("Automation HAT detected...")
-    automation_hat - True
+    automation_hat = True
 else:
     print("Automation pHAT detected...")
-    automation_phat - True
+    automation_phat = True
 
 
 GPIO.setmode(GPIO.BCM)
