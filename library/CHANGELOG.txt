@@ -1,3 +1,8 @@
+0.0.4
+-----
+
+* Fix for HAT/pHAT detection
+
 0.0.3
 -----
 

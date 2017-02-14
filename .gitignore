@@ -15,3 +15,9 @@ MANIFEST
 .idea
 pip-log.txt
 pip-delete-this-directory.txt
+packaging/*.deb
+packaging/*.dsc
+packaging/*.upload
+packaging/*.changes
+packaging/*.build
+packaging/*.xz

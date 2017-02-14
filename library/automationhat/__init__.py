@@ -22,7 +22,7 @@ from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 
 automation_hat = False

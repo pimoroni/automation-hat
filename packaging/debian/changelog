@@ -1,3 +1,9 @@
+automationhat (0.0.4) stable; urgency=low
+
+  * Fix for HAT/pHAT detection
+
+ -- Phil Howard <phil@pimoroni.com>  Tue, 14 Feb 2017 12:00:00 +0000
+
 automationhat (0.0.3) stable; urgency=low
 
   * Fix for Python 3 support
