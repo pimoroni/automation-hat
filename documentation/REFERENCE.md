@@ -1,4 +1,4 @@
-## Automation HAT /pHAT Documentation
+## Automation HAT /pHAT Function Reference
 
 ### Analog
 
