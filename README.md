@@ -72,11 +72,11 @@ In all cases you will have to enable the i2c bus.
 
 ## Documentation & Support
 
-* Guides and tutorials
-https://learn.pimoroni.com/automation-hat
-https://learn.pimoroni.com/automation-phat
+* Guides and tutorials  
+https://learn.pimoroni.com/automation-hat  
+https://learn.pimoroni.com/automation-phat  
 * Function reference - https://github.com/pimoroni/automation-hat/tree/master/documentation
-* GPIO Pinout
+* GPIO Pinout  
 https://pinout.xyz/pinout/automation_hat  
-https://pinout.xyz/pinout/automation_phat
+https://pinout.xyz/pinout/automation_phat  
 * Get help - http://forums.pimoroni.com/c/support
