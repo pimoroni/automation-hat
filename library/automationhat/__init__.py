@@ -52,6 +52,8 @@ except NameError:
     pass
 
 ads1015 = ads1015(i2c)
+if ads1015.available() is False:
+    exit("No ADC detected, check your connections")
 
 _led_states = [0] * 18
 _led_dirty = False
