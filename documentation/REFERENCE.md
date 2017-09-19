@@ -4,6 +4,8 @@
 
 Three of the four analog inputs on Automation HAT are 24V tolerant, with a forth 3.3V input in the breakout header.
 
+The 24V tolerant inputs each have a basic voltage divider, using 120k and 820k resistors, that divides up to 25.85v down to the 0-3.3v range supported by the ADC. This slight over-range is compensated for in the library.
+
 You can read an analog input like so:
 
 ```python
@@ -14,6 +16,8 @@ value = automationhat.analog.one.read()
 
 The three inputs on Automation HAT are 24V tolerant, switching on at 3V and off at 1V. Behaviour at voltages between 1V and 3V is undefined.
 
+The inputs are protected by a 20k resistor and 3.3v zener diode, limiting current to around 1mA.
+
 You can read an input like so:
 
 ```python
@@ -22,7 +26,7 @@ state = automationhat.input.one.read()
 
 ### Outputs
 
-The three outputs on Automation HAT are 24V tolerant, sinking outputs. That means you should connect them between your load and ground. They act like a switch down to ground, toggling your load on and off.
+The three outputs on Automation HAT are 24V tolerant, sinking outputs. That means you should connect them between your load and ground. They act like a switch down to ground, toggling your load on and off. The outputs are driven by a ULN2003A Darlington Array driver.
 
 You can turn an output on like so:
 
