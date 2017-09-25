@@ -33,6 +33,15 @@ i2c = None
 
 _led_states = [0] * 18
 _led_dirty = False
+_warnings = True
+
+def _warn(message):
+    if _warnings:
+        print("Warning: {}\nDisable this message with automationhat.set_warnings(False)".format(message))
+
+def set_warnings(mode):
+    global _warnings
+    _warnings = mode
 
 class SNLight(object):
     def __init__(self, index):
@@ -101,6 +110,9 @@ class AnalogInput(object):
 
     def read(self):
         """Return the read voltage of the analog input"""
+        if self.name == "four" and is_automation_phat():
+            _warn("Analog Four is not supported on Automation pHAT")
+
         return round(self.value * self.max_voltage, 2)
 
     def _update(self):
@@ -232,7 +244,7 @@ class Relay(Output):
 
         _setup_gpio()
 
-        if is_automation_phat():
+        if is_automation_phat() and self.name == "one":
             self.pin = RELAY_3
 
         GPIO.setup(self.pin, GPIO.OUT, initial=0)
@@ -245,6 +257,10 @@ class Relay(Output):
         :param value: Value to write, either 0 for LOW or 1 for HIGH
         """
         self.setup()
+
+        if is_automation_phat() and self.name in ["two", "three"]:
+            _warn("Relay '{}' is not supported on Automation pHAT".format(self.name))
+
         GPIO.output(self.pin, value)
 
         if value:
