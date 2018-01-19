@@ -14,9 +14,6 @@ from .pins import ObjectCollection, AsyncWorker, StoppableThread
 __version__ = '0.0.4'
 
 
-automation_hat = False
-automation_phat = True
-
 RELAY_1 = 13
 RELAY_2 = 19
 RELAY_3 = 16
@@ -30,6 +27,10 @@ OUTPUT_2 = 12
 OUTPUT_3 = 6
 
 i2c = None
+sn3218 = None
+
+automation_hat = False
+automation_phat = True
 
 _led_states = [0] * 18
 _led_dirty = False
@@ -101,7 +102,7 @@ class AnalogInput(object):
         if self._is_setup:
             return
 
-        _setup_analog()
+        setup()
         self._is_setup = True
 
     def auto_light(self, value):
@@ -173,7 +174,7 @@ class Input(Pin):
         if self._is_setup:
             return False
 
-        _setup_gpio()
+        setup()
         GPIO.setup(self.pin, GPIO.IN)
         self._is_setup = True
 
@@ -198,7 +199,7 @@ class Output(Pin):
         if self._is_setup:
             return False
 
-        _setup_gpio()
+        setup()
         GPIO.setup(self.pin, GPIO.OUT, initial=0)
         self._is_setup = True
         return True
@@ -242,7 +243,7 @@ class Relay(Output):
         if self._is_setup:
             return False
 
-        _setup_gpio()
+        setup()
 
         if is_automation_phat() and self.name == "one":
             self.pin = RELAY_3
@@ -272,84 +273,57 @@ class Relay(Output):
 
 
 def _update_adc():
+    global _led_dirty
+
     analog._update()
+
+    if sn3218 is not None:
+
+        input._auto_lights()
+        analog._auto_lights()
+
+        if _led_dirty:
+            sn3218.output(_led_states)
+            _led_dirty = False
+
+
     time.sleep(0.001)
 
 
-def _auto_lights():
-    global _led_dirty
-
-    input._auto_lights()
-    analog._auto_lights()
-
-    if _led_dirty:
-        sn3218.output(_led_states)
-        _led_dirty = False
-
-    time.sleep(0.01)
-
-
 def is_automation_hat():
-    _setup_gpio()
-    _setup_analog()
-    return automation_hat
+    setup()
+    return sn3218 is not None
 
 
 def is_automation_phat():
-    _setup_gpio()
-    _setup_analog()
-    return automation_phat
+    setup()
+    return sn3218 is None
 
 
-def _stop_lights():
-    if _t_auto_lights:
-        _t_auto_lights.stop()
-        sn3218.output([0] * 18)
-
-
-def _setup_lights():
-    global sn3218, _t_auto_lights, _setup_lights, automation_hat, automation_phat
+def setup():
+    global automation_hat, automation_phat, sn3218, _ads1015, setup, _t_update_adc
 
     try:
         import sn3218
+        sn3218.enable()
+        sn3218.enable_leds(0b111111111111111111)
+        automation_hat = True
+        automation_phat = False
 
-    except (ImportError, IOError):
-	_setup_lights = lambda: False
-        return False
+    except ImportError:
+        raise ImportError("This library requires sn3218\nInstall with: pip install sn3218")
 
-    _setup_lights = lambda: True
-
-    sn3218.enable()
-    sn3218.enable_leds(0b111111111111111111)
-
-    automation_hat = True
-    automation_phat = False
-
-    if automation_hat:
-        _t_auto_lights = AsyncWorker(_auto_lights)
-        _t_auto_lights.start()
-        atexit.register(_stop_lights)
-
-    return True
-
-
-def _stop_analog():
-   if _t_update_adc: 
-       _t_update_adc.stop()
-
-
-def _setup_analog():
-    global _ads1015, _setup_analog, _t_update_adc
+    except IOError:
+        pass
 
     try:
         import smbus
+
     except ImportError:
         if version_info[0] < 3:
             raise ImportError("This library requires python-smbus\nInstall with: sudo apt install python-smbus")
         elif version_info[0] == 3:
             raise ImportError("This library requires python3-smbus\nInstall with: sudo apt install python3-smbus")
-
-    _setup_analog = lambda: True
 
     _ads1015 = ads1015(smbus.SMBus(1))
 
@@ -359,25 +333,25 @@ def _setup_analog():
     _t_update_adc = AsyncWorker(_update_adc)
     _t_update_adc.start()
 
-    atexit.register(_stop_analog)
-
-
-def _stop_gpio():
-    GPIO.cleanup()
-
-
-def _setup_gpio():
-    global _setup_gpio
-
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
 
-    _setup_lights()
+    atexit.register(_exit)
 
-    atexit.register(_stop_gpio)
+    setup = lambda: True
 
-    _setup_gpio = lambda: True
+    return True
 
+
+def _exit():
+    if _t_update_adc:
+        _t_update_adc.stop()
+        _t_update_adc.join()
+
+    if sn3218 is not None:
+        sn3218.output([0] * 18)
+
+    GPIO.cleanup()
 
 analog = ObjectCollection()
 analog._add(one=AnalogInput(0, 25.85, 0))
