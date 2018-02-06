@@ -9,7 +9,7 @@ except ImportError:
 
 from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
-
+from threading import Lock
 
 __version__ = '0.0.4'
 
@@ -26,6 +26,8 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
+UPDATES_PER_SECOND = 60
+
 i2c = None
 sn3218 = None
 
@@ -35,6 +37,7 @@ automation_phat = True
 _led_states = [0] * 18
 _led_dirty = False
 _warnings = True
+_i2c_lock = Lock()
 
 def _warn(message):
     if _warnings:
@@ -97,6 +100,7 @@ class AnalogInput(object):
         self.value = 0
         self.max_voltage = float(max_voltage)
         self.light = SNLight(led)
+        self._is_setup = False
 
     def setup(self):
         if self._is_setup:
@@ -105,19 +109,26 @@ class AnalogInput(object):
         setup()
         self._is_setup = True
 
-    def auto_light(self, value):
-        self._en_auto_lights = value
-        return True
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
 
     def read(self):
         """Return the read voltage of the analog input"""
         if self.name == "four" and is_automation_phat():
             _warn("Analog Four is not supported on Automation pHAT")
 
+        self._update()
         return round(self.value * self.max_voltage, 2)
 
     def _update(self):
-        self.value = _ads1015.read(self.channel)
+        self.setup()
+        try:
+            _i2c_lock.acquire(True)
+            self.value = _ads1015.read(self.channel)
+        finally:
+            _i2c_lock.release()
 
     def _auto_lights(self):
         if self._en_auto_lights:
@@ -204,9 +215,10 @@ class Output(Pin):
         self._is_setup = True
         return True
 
-    def auto_light(self, value):
-        self._en_auto_lights = value
-        return True
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
 
     def write(self, value):
         """Write a value to the output.
@@ -238,6 +250,12 @@ class Relay(Output):
         Pin.__init__(self, pin)
         self.light_no = SNLight(led_no)
         self.light_nc = SNLight(led_nc)
+        self._en_auto_lights = True
+
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
 
     def setup(self):
         if self._is_setup:
@@ -264,30 +282,33 @@ class Relay(Output):
 
         GPIO.output(self.pin, value)
 
-        if value:
-            self.light_no.write(1)
-            self.light_nc.write(0)
-        else:
-            self.light_no.write(0)
-            self.light_nc.write(1)
+        if self._en_auto_lights:
+            if value:
+                self.light_no.write(1)
+                self.light_nc.write(0)
+            else:
+                self.light_no.write(0)
+                self.light_nc.write(1)
 
 
-def _update_adc():
+def _update():
     global _led_dirty
 
     analog._update()
 
-    if sn3218 is not None:
+    input._auto_lights()
+    analog._auto_lights()
 
-        input._auto_lights()
-        analog._auto_lights()
-
-        if _led_dirty:
+    if _led_dirty:
+        _i2c_lock.acquire(True)
+        try:
             sn3218.output(_led_states)
-            _led_dirty = False
+        finally:
+            _i2c_lock.release()
 
+        _led_dirty = False
 
-    time.sleep(0.001)
+    time.sleep(1.0 / UPDATES_PER_SECOND)
 
 
 def is_automation_hat():
@@ -301,7 +322,7 @@ def is_automation_phat():
 
 
 def setup():
-    global automation_hat, automation_phat, sn3218, _ads1015, setup, _t_update_adc
+    global automation_hat, automation_phat, sn3218, _ads1015, setup, _t_update
 
     try:
         import sn3218
@@ -330,8 +351,9 @@ def setup():
     if _ads1015.available() is False:
         raise RuntimeError("No ADC detected, check your connections")
 
-    _t_update_adc = AsyncWorker(_update_adc)
-    _t_update_adc.start()
+    if sn3218 is not None:
+        _t_update = AsyncWorker(_update)
+        _t_update.start()
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
@@ -344,9 +366,9 @@ def setup():
 
 
 def _exit():
-    if _t_update_adc:
-        _t_update_adc.stop()
-        _t_update_adc.join()
+    if _t_update:
+        _t_update.stop()
+        _t_update.join()
 
     if sn3218 is not None:
         sn3218.output([0] * 18)
