@@ -9,7 +9,6 @@ except ImportError:
 
 from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
-from threading import Lock
 
 __version__ = '0.0.4'
 
@@ -26,7 +25,7 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
-UPDATES_PER_SECOND = 60
+UPDATES_PER_SECOND = 30
 
 i2c = None
 sn3218 = None
@@ -35,9 +34,10 @@ automation_hat = False
 automation_phat = True
 
 _led_states = [0] * 18
-_led_dirty = False
+_lights_need_updating = False
 _warnings = True
-_i2c_lock = Lock()
+_is_setup = False
+_t_update_lights = None
 
 def _warn(message):
     if _warnings:
@@ -76,7 +76,7 @@ class SNLight(object):
 
         :param value: Brightness of the light, from 0.0 to 1.0
         """
-        global _led_dirty
+        global _lights_need_updating
 
         if self.index is None:
             return
@@ -86,7 +86,11 @@ class SNLight(object):
 
         if value >= 0 and value <= 1.0:
             _led_states[self.index] = int(self._max_brightness * value)
-            _led_dirty = True
+            if _t_update_lights is None and sn3218 is not None:
+                sn3218.output(_led_states)
+            else:
+                _lights_need_updating = True
+                
         else:
             raise ValueError("Value must be between 0.0 and 1.0")
 
@@ -124,13 +128,8 @@ class AnalogInput(object):
 
     def _update(self):
         self.setup()
-        try:
-            _i2c_lock.acquire(True)
-            self.value = _ads1015.read(self.channel)
-        finally:
-            _i2c_lock.release()
+        self.value = _ads1015.read(self.channel)
 
-    def _auto_lights(self):
         if self._en_auto_lights:
             adc = self.value
             self.light.write(max(0.0,min(1.0,adc)))
@@ -189,13 +188,16 @@ class Input(Pin):
         GPIO.setup(self.pin, GPIO.IN)
         self._is_setup = True
 
-    def auto_light(self, value):
-        self._en_auto_lights = value
-        return True
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
 
-    def _auto_lights(self):
+    def read(self):
+        value = Pin.read(self)
         if self._en_auto_lights:
-            self.light.write(self.read()) 
+            self.light.write(value)
+        return value 
 
 
 class Output(Pin):
@@ -291,22 +293,15 @@ class Relay(Output):
                 self.light_nc.write(1)
 
 
-def _update():
-    global _led_dirty
+def _update_lights():
+    global _lights_need_updating
 
-    analog._update()
+    analog.read()
+    input.read()
 
-    input._auto_lights()
-    analog._auto_lights()
-
-    if _led_dirty:
-        _i2c_lock.acquire(True)
-        try:
-            sn3218.output(_led_states)
-        finally:
-            _i2c_lock.release()
-
-        _led_dirty = False
+    if _lights_need_updating:
+        sn3218.output(_led_states)
+        _lights_need_updating = False
 
     time.sleep(1.0 / UPDATES_PER_SECOND)
 
@@ -321,25 +316,42 @@ def is_automation_phat():
     return sn3218 is None
 
 
+def enable_auto_lights(state):
+    global _t_update_lights
+
+    setup()
+
+    if sn3218 is None:
+        return
+
+    input.auto_light(state)
+    output.auto_light(state)
+    relay.auto_light(state)
+    analog.auto_light(state)
+
+    if state and _t_update_lights is None:
+        _t_update_lights = AsyncWorker(_update_lights)
+        _t_update_lights.start()
+
+    if not state and _t_update_lights is not None:
+        _t_update_lights.stop()
+        _t_update_lights.join()
+        _t_update_lights = None
+
+
 def setup():
-    global automation_hat, automation_phat, sn3218, _ads1015, setup, _t_update
+    global automation_hat, automation_phat, sn3218, _ads1015, _is_setup, _t_update_lights
 
-    try:
-        import sn3218
-        sn3218.enable()
-        sn3218.enable_leds(0b111111111111111111)
-        automation_hat = True
-        automation_phat = False
+    if _is_setup:
+        return True
 
-    except ImportError:
-        raise ImportError("This library requires sn3218\nInstall with: pip install sn3218")
+    _is_setup = True
 
-    except IOError:
-        pass
-
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+ 
     try:
         import smbus
-
     except ImportError:
         if version_info[0] < 3:
             raise ImportError("This library requires python-smbus\nInstall with: sudo apt install python-smbus")
@@ -351,24 +363,28 @@ def setup():
     if _ads1015.available() is False:
         raise RuntimeError("No ADC detected, check your connections")
 
-    if sn3218 is not None:
-        _t_update = AsyncWorker(_update)
-        _t_update.start()
+    try:
+        import sn3218
+    except ImportError:
+        raise ImportError("This library requires sn3218\nInstall with: sudo pip install sn3218")
+    except IOError:
+        pass
 
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
+    if sn3218 is not None:
+        sn3218.enable()
+        sn3218.enable_leds(0b111111111111111111)
+        automation_hat = True
+        automation_phat = False
+        _t_update_lights = AsyncWorker(_update_lights)
+        _t_update_lights.start()
 
     atexit.register(_exit)
 
-    setup = lambda: True
-
-    return True
-
 
 def _exit():
-    if _t_update:
-        _t_update.stop()
-        _t_update.join()
+    if _t_update_lights:
+        _t_update_lights.stop()
+        _t_update_lights.join()
 
     if sn3218 is not None:
         sn3218.output([0] * 18)
