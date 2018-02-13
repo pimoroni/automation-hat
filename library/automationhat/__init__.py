@@ -1,5 +1,6 @@
 import atexit
 import time
+import warnings
 from sys import version_info
 
 try:
@@ -35,17 +36,9 @@ automation_phat = True
 
 _led_states = [0] * 18
 _lights_need_updating = False
-_warnings = True
 _is_setup = False
 _t_update_lights = None
 
-def _warn(message):
-    if _warnings:
-        print("Warning: {}\nDisable this message with automationhat.set_warnings(False)".format(message))
-
-def set_warnings(mode):
-    global _warnings
-    _warnings = mode
 
 class SNLight(object):
     def __init__(self, index):
@@ -121,7 +114,7 @@ class AnalogInput(object):
     def read(self):
         """Return the read voltage of the analog input"""
         if self.name == "four" and is_automation_phat():
-            _warn("Analog Four is not supported on Automation pHAT")
+            warnings.warn("Analog Four is not supported on Automation pHAT")
 
         self._update()
         return round(self.value * self.max_voltage, 2)
@@ -280,7 +273,7 @@ class Relay(Output):
         self.setup()
 
         if is_automation_phat() and self.name in ["two", "three"]:
-            _warn("Relay '{}' is not supported on Automation pHAT".format(self.name))
+            warnings.warn("Relay '{}' is not supported on Automation pHAT".format(self.name))
 
         GPIO.output(self.pin, value)
 
