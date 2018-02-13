@@ -1,32 +1,18 @@
 import atexit
 import time
-from sys import exit, version_info
-
-try:
-    import sn3218
-except (ImportError, IOError):
-    try:
-        from smbus import SMBus
-    except ImportError:
-            if version_info[0] < 3:
-                exit("This library requires python-smbus\nInstall with: sudo apt-get install python-smbus")
-            elif version_info[0] == 3:
-                exit("This library requires python3-smbus\nInstall with: sudo apt-get install python3-smbus")
+import warnings
+from sys import version_info
 
 try:
     import RPi.GPIO as GPIO
 except ImportError:
-    exit("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
+    raise ImportError("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
 
 from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
-
 __version__ = '0.0.4'
 
-
-automation_hat = False
-automation_phat = False
 
 RELAY_1 = 13
 RELAY_2 = 19
@@ -40,23 +26,18 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
+UPDATES_PER_SECOND = 30
+
 i2c = None
+sn3218 = None
 
-try:
-    i2c = sn3218.i2c
-    sn3218.enable()
-    sn3218.enable_leds(0b111111111111111111)
-except NameError:
-    i2c = SMBus(1)
-    sn3218 = None
-    pass
-
-ads1015 = ads1015(i2c)
-if ads1015.available() is False:
-    exit("No ADC detected, check your connections")
+automation_hat = False
+automation_phat = True
 
 _led_states = [0] * 18
-_led_dirty = False
+_lights_need_updating = False
+_is_setup = False
+_t_update_lights = None
 
 
 class SNLight(object):
@@ -88,7 +69,8 @@ class SNLight(object):
 
         :param value: Brightness of the light, from 0.0 to 1.0
         """
-        global _led_dirty
+        global _lights_need_updating
+
         if self.index is None:
             return
 
@@ -97,7 +79,11 @@ class SNLight(object):
 
         if value >= 0 and value <= 1.0:
             _led_states[self.index] = int(self._max_brightness * value)
-            _led_dirty = True
+            if _t_update_lights is None and sn3218 is not None:
+                sn3218.output(_led_states)
+            else:
+                _lights_need_updating = True
+                
         else:
             raise ValueError("Value must be between 0.0 and 1.0")
 
@@ -111,19 +97,32 @@ class AnalogInput(object):
         self.value = 0
         self.max_voltage = float(max_voltage)
         self.light = SNLight(led)
+        self._is_setup = False
 
-    def auto_light(self, value):
-        self._en_auto_lights = value
-        return True
+    def setup(self):
+        if self._is_setup:
+            return
+
+        setup()
+        self._is_setup = True
+
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
 
     def read(self):
         """Return the read voltage of the analog input"""
+        if self.name == "four" and is_automation_phat():
+            warnings.warn("Analog Four is not supported on Automation pHAT")
+
+        self._update()
         return round(self.value * self.max_voltage, 2)
 
     def _update(self):
-        self.value = ads1015.read(self.channel)
+        self.setup()
+        self.value = _ads1015.read(self.channel)
 
-    def _auto_lights(self):
         if self._en_auto_lights:
             adc = self.value
             self.light.write(max(0.0,min(1.0,adc)))
@@ -135,12 +134,17 @@ class Pin(object):
     def __init__(self, pin):
         self.pin = pin
         self._last_value = None
+        self._is_setup = False
 
     def __call__(self):
         return filter(lambda x: x[0] != '_', dir(self))
 
     def read(self):
+        self.setup()
         return GPIO.input(self.pin)
+
+    def setup(self):
+        pass
 
     def has_changed(self):
         value = self.read()
@@ -167,16 +171,26 @@ class Input(Pin):
     def __init__(self, pin, led):
         self._en_auto_lights = True
         Pin.__init__(self, pin)
-        GPIO.setup(self.pin, GPIO.IN)
         self.light = SNLight(led)
 
-    def auto_light(self, value):
-        self._en_auto_lights = value
-        return True
+    def setup(self):
+        if self._is_setup:
+            return False
 
-    def _auto_lights(self):
+        setup()
+        GPIO.setup(self.pin, GPIO.IN)
+        self._is_setup = True
+
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
+
+    def read(self):
+        value = Pin.read(self)
         if self._en_auto_lights:
-            self.light.write(self.read()) 
+            self.light.write(value)
+        return value 
 
 
 class Output(Pin):
@@ -185,18 +199,28 @@ class Output(Pin):
     def __init__(self, pin, led):
         self._en_auto_lights = True
         Pin.__init__(self, pin)
-        GPIO.setup(self.pin, GPIO.OUT, initial=0)
         self.light = SNLight(led)
 
-    def auto_light(self, value):
-        self._en_auto_lights = value
+    def setup(self):
+        if self._is_setup:
+            return False
+
+        setup()
+        GPIO.setup(self.pin, GPIO.OUT, initial=0)
+        self._is_setup = True
         return True
+
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
 
     def write(self, value):
         """Write a value to the output.
 
         :param value: Value to write, either 1 for HIGH or 0 for LOW
         """
+        self.setup()
         GPIO.output(self.pin, value)
         if self._en_auto_lights:
             self.light.write(1 if value else 0)
@@ -219,50 +243,152 @@ class Relay(Output):
 
     def __init__(self, pin, led_no, led_nc):
         Pin.__init__(self, pin)
-        GPIO.setup(self.pin, GPIO.OUT)
         self.light_no = SNLight(led_no)
         self.light_nc = SNLight(led_nc)
+        self._en_auto_lights = True
+
+    def auto_light(self, value=None):
+        if value is not None:
+            self._en_auto_lights = value
+        return self._en_auto_lights
+
+    def setup(self):
+        if self._is_setup:
+            return False
+
+        setup()
+
+        if is_automation_phat() and self.name == "one":
+            self.pin = RELAY_3
+
+        GPIO.setup(self.pin, GPIO.OUT, initial=0)
+        self._is_setup = True
+        return True
 
     def write(self, value):
         """Write a value to the relay.
 
         :param value: Value to write, either 0 for LOW or 1 for HIGH
         """
+        self.setup()
+
+        if is_automation_phat() and self.name in ["two", "three"]:
+            warnings.warn("Relay '{}' is not supported on Automation pHAT".format(self.name))
+
         GPIO.output(self.pin, value)
 
-        if value:
-            self.light_no.write(1)
-            self.light_nc.write(0)
-        else:
-            self.light_no.write(0)
-            self.light_nc.write(1)
+        if self._en_auto_lights:
+            if value:
+                self.light_no.write(1)
+                self.light_nc.write(0)
+            else:
+                self.light_no.write(0)
+                self.light_nc.write(1)
+
+
+def _update_lights():
+    global _lights_need_updating
+
+    analog.read()
+    input.read()
+
+    if _lights_need_updating:
+        sn3218.output(_led_states)
+        _lights_need_updating = False
+
+    time.sleep(1.0 / UPDATES_PER_SECOND)
 
 
 def is_automation_hat():
-    return automation_hat
+    setup()
+    return sn3218 is not None
+
 
 def is_automation_phat():
-    return automation_phat
+    setup()
+    return sn3218 is None
 
 
-if sn3218 is not None:
-    print("Automation HAT detected...")
-    automation_hat = True
-else:
-    print("Automation pHAT detected...")
-    automation_phat = True
+def enable_auto_lights(state):
+    global _t_update_lights
+
+    setup()
+
+    if sn3218 is None:
+        return
+
+    input.auto_light(state)
+    output.auto_light(state)
+    relay.auto_light(state)
+    analog.auto_light(state)
+
+    if state and _t_update_lights is None:
+        _t_update_lights = AsyncWorker(_update_lights)
+        _t_update_lights.start()
+
+    if not state and _t_update_lights is not None:
+        _t_update_lights.stop()
+        _t_update_lights.join()
+        _t_update_lights = None
 
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+def setup():
+    global automation_hat, automation_phat, sn3218, _ads1015, _is_setup, _t_update_lights
+
+    if _is_setup:
+        return True
+
+    _is_setup = True
+
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setwarnings(False)
+ 
+    try:
+        import smbus
+    except ImportError:
+        if version_info[0] < 3:
+            raise ImportError("This library requires python-smbus\nInstall with: sudo apt install python-smbus")
+        elif version_info[0] == 3:
+            raise ImportError("This library requires python3-smbus\nInstall with: sudo apt install python3-smbus")
+
+    _ads1015 = ads1015(smbus.SMBus(1))
+
+    if _ads1015.available() is False:
+        raise RuntimeError("No ADC detected, check your connections")
+
+    try:
+        import sn3218
+    except ImportError:
+        raise ImportError("This library requires sn3218\nInstall with: sudo pip install sn3218")
+    except IOError:
+        pass
+
+    if sn3218 is not None:
+        sn3218.enable()
+        sn3218.enable_leds(0b111111111111111111)
+        automation_hat = True
+        automation_phat = False
+        _t_update_lights = AsyncWorker(_update_lights)
+        _t_update_lights.start()
+
+    atexit.register(_exit)
+
+
+def _exit():
+    if _t_update_lights:
+        _t_update_lights.stop()
+        _t_update_lights.join()
+
+    if sn3218 is not None:
+        sn3218.output([0] * 18)
+
+    GPIO.cleanup()
 
 analog = ObjectCollection()
 analog._add(one=AnalogInput(0, 25.85, 0))
 analog._add(two=AnalogInput(1, 25.85, 1))
 analog._add(three=AnalogInput(2, 25.85, 2))
-
-if is_automation_hat():
-    analog._add(four=AnalogInput(3, 3.3, None))
+analog._add(four=AnalogInput(3, 3.3, None))
 
 input = ObjectCollection()
 input._add(one=Input(INPUT_1, 14))
@@ -276,50 +402,12 @@ output._add(three=Output(OUTPUT_3, 5))
 
 relay = ObjectCollection()
 
-if is_automation_phat():
-    relay._add(one=Relay(RELAY_3, 0, 0))
-
-else:
-    relay._add(one=Relay(RELAY_1, 6, 7))
-    relay._add(two=Relay(RELAY_2, 8, 9))
-    relay._add(three=Relay(RELAY_3, 10, 11))
+relay._add(one=Relay(RELAY_1, 6, 7))
+relay._add(two=Relay(RELAY_2, 8, 9))
+relay._add(three=Relay(RELAY_3, 10, 11))
 
 light = ObjectCollection()
+light._add(power=SNLight(17))
+light._add(comms=SNLight(16))
+light._add(warn=SNLight(15))
 
-if is_automation_hat():
-    light._add(power=SNLight(17))
-    light._add(comms=SNLight(16))
-    light._add(warn=SNLight(15))
-
-def _update_adc():
-    analog._update()
-    time.sleep(0.001)
-
-def _auto_lights():
-    global _led_dirty
-
-    input._auto_lights()
-    analog._auto_lights()
-
-    if _led_dirty:
-        sn3218.output(_led_states)
-        _led_dirty = False
-
-    time.sleep(0.01)
-
-if is_automation_hat():
-    _t_auto_lights = AsyncWorker(_auto_lights)
-    _t_auto_lights.start()
-
-_t_update_adc = AsyncWorker(_update_adc)
-_t_update_adc.start()
-
-def _cleanup():
-    if is_automation_hat():
-        _t_auto_lights.stop()
-        sn3218.output([0] * 18)
-
-    _t_update_adc.stop()
-    GPIO.cleanup()
-
-atexit.register(_cleanup)
