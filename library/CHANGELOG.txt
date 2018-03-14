@@ -1,3 +1,10 @@
+0.1.0
+-----
+
+* Fix: Defer setup to avoid import side effects
+* Fix: Slowed LED update rate
+* Improvement: Switched to warnings to notify about unsupported features on pHAT
+
 0.0.4
 -----
 

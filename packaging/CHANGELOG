@@ -1,3 +1,11 @@
+automationhat (0.1.0) stable; urgency=low
+
+  * Fix: Defer setup to avoid import side effects
+  * Fix: Slowed LED update rate
+  * Improvement: Switched to warnings to notify about unsupported features on pHAT
+
+ -- Phil Howard <phil@pimoroni.com>  Wed, 14 Mar 2018 12:00:00 +0000
+
 automationhat (0.0.4) stable; urgency=low
 
   * Fix for HAT/pHAT detection
