@@ -1,5 +1,5 @@
 import time
-
+import sys
 
 ADDR = 0x48
 
@@ -38,12 +38,13 @@ class ads1015:
         # set "single shot" mode
         config |= 0x8000
 
+        delay = (1.0 / samples_per_second) + 0.0001
+
         # write single conversion flag
         self.i2c_bus.write_i2c_block_data(self.addr, REG_CFG, [(config >> 8) & 0xFF, config & 0xFF])
-
-        delay = (1.0 / samples_per_second) + 0.0001
-        time.sleep(delay)
-
+        t_s = time.time()
+        while time.time() < t_s + delay:
+            pass
         data = self.i2c_bus.read_i2c_block_data(self.addr, REG_CONV)
 
         value = ((data[0] << 4) | (data[1] >> 4))
