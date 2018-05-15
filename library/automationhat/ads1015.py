@@ -41,10 +41,10 @@ class ads1015:
         delay = (1.0 / samples_per_second) + 0.0001
 
         # write single conversion flag
+
         self.i2c_bus.write_i2c_block_data(self.addr, REG_CFG, [(config >> 8) & 0xFF, config & 0xFF])
-        t_s = time.time()
-        while time.time() < t_s + delay:
-            pass
+        while self.status() == 0:
+            time.sleep(delay / 100.0)
         data = self.i2c_bus.read_i2c_block_data(self.addr, REG_CONV)
 
         value = ((data[0] << 4) | (data[1] >> 4))
@@ -62,6 +62,11 @@ class ads1015:
         return tuple([self.read(channel=x) for x in range(4)])
 
     values = read_all
+
+    def status(self):
+        status = self.i2c_bus.read_word_data(self.addr, REG_CFG)
+        #print("{:16b}".format(status))
+        return status >> 15
 
     def available(self):
         try:
