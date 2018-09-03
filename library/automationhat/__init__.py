@@ -11,7 +11,7 @@ except ImportError:
 from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 RELAY_1 = 13
@@ -21,6 +21,8 @@ RELAY_3 = 16
 INPUT_1 = 26
 INPUT_2 = 20
 INPUT_3 = 21
+PULL_UP = GPIO.PUD_UP
+PULL_DOWN = GPIO.PUD_DOWN
 
 OUTPUT_1 = 5
 OUTPUT_2 = 12
@@ -170,6 +172,7 @@ class Input(Pin):
 
     def __init__(self, pin, led):
         self._en_auto_lights = True
+        self._resistor = None
         Pin.__init__(self, pin)
         self.light = SNLight(led)
 
@@ -178,13 +181,24 @@ class Input(Pin):
             return False
 
         setup()
-        GPIO.setup(self.pin, GPIO.IN)
+        if (self._resistor is None):
+            GPIO.setup(self.pin, GPIO.IN)
+        else:
+            GPIO.setup(self.pin, GPIO.IN, pull_up_down=self._resistor)
         self._is_setup = True
 
     def auto_light(self, value=None):
         if value is not None:
             self._en_auto_lights = value
         return self._en_auto_lights
+
+    def resistor(self, value=None):
+        if value is not None:
+            if (value == PULL_DOWN or value == PULL_UP):
+                self._resistor = value
+            else:
+                warnings.warn("Not a valid value for Resistor. Should either be PULL_UP or PULL_DOWN.")
+        return self._resistor
 
     def read(self):
         value = Pin.read(self)
