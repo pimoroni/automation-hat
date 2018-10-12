@@ -1,5 +1,16 @@
+from functools import wraps
+from threading import Lock
 import time
 import sys
+
+def synchronized(func):
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return func(self, *args, **kwargs)
+
+    return wrapper
 
 ADDR = 0x48
 
@@ -26,7 +37,9 @@ class ads1015:
             raise TypeError("Object given for i2c_bus must implement write_i2c_block_data and read_i2c_block_data")
 
         self.addr = addr
+        self._lock = Lock()
 
+    @synchronized
     def read(self, channel=0, programmable_gain=PGA_4_096V, samples_per_second=1600):
         # sane defaults
         config = 0x0003 | 0x0100
@@ -43,8 +56,7 @@ class ads1015:
         # write single conversion flag
 
         self.i2c_bus.write_i2c_block_data(self.addr, REG_CFG, [(config >> 8) & 0xFF, config & 0xFF])
-        while self.status() == 0:
-            time.sleep(delay / 100.0)
+        time.sleep(delay)
         data = self.i2c_bus.read_i2c_block_data(self.addr, REG_CONV)
 
         value = ((data[0] << 4) | (data[1] >> 4))
@@ -62,11 +74,6 @@ class ads1015:
         return tuple([self.read(channel=x) for x in range(4)])
 
     values = read_all
-
-    def status(self):
-        status = self.i2c_bus.read_word_data(self.addr, REG_CFG)
-        #print("{:16b}".format(status))
-        return status >> 15
 
     def available(self):
         try:
