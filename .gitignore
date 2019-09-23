@@ -21,3 +21,6 @@ packaging/*.upload
 packaging/*.changes
 packaging/*.build
 packaging/*.xz
+.vscode/
+.tox
+.coverage
