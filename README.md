@@ -1,6 +1,6 @@
-![Automation HAT](autohat_360.png)  
-https://shop.pimoroni.com/products/automation-hat  
-https://shop.pimoroni.com/products/automation-phat  
+![Automation HAT](autohat_360.png)
+https://shop.pimoroni.com/products/automation-hat
+https://shop.pimoroni.com/products/automation-phat
 
 Automation HAT/pHAT is a home monitoring and automation controller featuring relays, analog channels, powered outputs, and buffered inputs (all 24V tolerant).
 
@@ -39,7 +39,7 @@ on Raspbian:
 sudo apt-get install python3-automationhat
 ```
 
-other environments: 
+other environments:
 
 ```bash
 sudo pip3 install automationhat
@@ -53,7 +53,7 @@ on Raspbian:
 sudo apt-get install python-automationhat
 ```
 
-other environments: 
+other environments:
 
 ```bash
 sudo pip2 install automationhat
@@ -72,13 +72,13 @@ In all cases you will have to enable the i2c bus.
 
 ## Documentation & Support
 
-* Guides and tutorials  
-https://learn.pimoroni.com/automation-hat  
-https://learn.pimoroni.com/automation-phat  
-* Function reference  
+* Guides and tutorials
+https://learn.pimoroni.com/automation-hat
+https://learn.pimoroni.com/automation-phat
+* Function reference
 https://github.com/pimoroni/automation-hat/tree/master/documentation
-* GPIO Pinout  
-https://pinout.xyz/pinout/automation_hat  
-https://pinout.xyz/pinout/automation_phat  
-* Get help  
+* GPIO Pinout
+https://pinout.xyz/pinout/automation_hat
+https://pinout.xyz/pinout/automation_phat
+* Get help
 http://forums.pimoroni.com/c/support

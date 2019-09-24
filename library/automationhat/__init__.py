@@ -11,7 +11,7 @@ except ImportError:
 from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 
 RELAY_1 = 13
@@ -83,7 +83,7 @@ class SNLight(object):
                 sn3218.output(_led_states)
             else:
                 _lights_need_updating = True
-                
+
         else:
             raise ValueError("Value must be between 0.0 and 1.0")
 
@@ -125,7 +125,7 @@ class AnalogInput(object):
 
         if self._en_auto_lights:
             adc = self.value
-            self.light.write(max(0.0,min(1.0,adc)))
+            self.light.write(max(0.0, min(1.0, adc)))
 
 
 class Pin(object):
@@ -190,7 +190,7 @@ class Input(Pin):
         value = Pin.read(self)
         if self._en_auto_lights:
             self.light.write(value)
-        return value 
+        return value
 
 
 class Output(Pin):
@@ -342,7 +342,7 @@ def setup():
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
- 
+
     try:
         import smbus
     except ImportError:
@@ -383,6 +383,7 @@ def _exit():
         sn3218.output([0] * 18)
 
     GPIO.cleanup()
+
 
 analog = ObjectCollection()
 analog._add(one=AnalogInput(0, 25.85, 0))

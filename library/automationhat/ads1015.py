@@ -1,7 +1,7 @@
 from functools import wraps
 from threading import Lock
 import time
-import sys
+
 
 def synchronized(func):
 
@@ -11,6 +11,7 @@ def synchronized(func):
             return func(self, *args, **kwargs)
 
     return wrapper
+
 
 ADDR = 0x48
 
@@ -28,6 +29,7 @@ PGA_1_024V = 1024
 PGA_0_512V = 512
 PGA_0_256V = 256
 
+
 class ads1015:
     def __init__(self, i2c_bus=None, addr=ADDR):
         self._over_voltage = [False] * 4
@@ -41,6 +43,7 @@ class ads1015:
 
     @synchronized
     def read(self, channel=0, programmable_gain=PGA_4_096V, samples_per_second=1600):
+        """Read a single ADC channel."""
         # sane defaults
         config = 0x0003 | 0x0100
 
@@ -64,13 +67,14 @@ class ads1015:
         if value & 0x800:
             value -= 1 << 12
 
-        value /= 2047.0 # Divide down to percentage of FS
+        value /= 2047.0  # Divide down to percentage of FS
         value *= float(programmable_gain)
-        value /= 3300.0 # Divide by VCC
+        value /= 3300.0  # Divide by VCC
 
         return value
 
     def read_all(self):
+        """Read all ADC values with default settings."""
         return tuple([self.read(channel=x) for x in range(4)])
 
     values = read_all

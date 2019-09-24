@@ -1,3 +1,9 @@
+0.2.0
+-----
+
+* Fix: Fix thread interleaving and race conditions leading to spurious ADC readings
+* Fix: Switch to non-deprecated alias of thread.isAlive
+
 0.1.0
 -----
 
