@@ -1,11 +1,10 @@
 Automation HAT
-==============
+--------------
 
-.. image:: https://raw.githubusercontent.com/pimoroni/automation-hat/master/autohat_360.png
-   :alt: Automation HAT
+|Build Status| |Coverage Status| |PyPi Package| |Python Versions|
 
-* https://shop.pimoroni.com/products/automation-hat
-* https://shop.pimoroni.com/products/automation-phat
+https://shop.pimoroni.com/products/automation-hat
+https://shop.pimoroni.com/products/automation-phat
 
 Automation HAT/pHAT is a home monitoring and automation controller
 featuring relays, analog channels, powered outputs, and buffered inputs
@@ -23,7 +22,7 @@ minimal efforts. To run it, fire up Terminal which you'll find in Menu
 -> Accessories -> Terminal on your Raspberry Pi desktop, as illustrated
 below:
 
-.. image:: http://get.pimoroni.com/resources/github-repo-terminal.png
+.. figure:: http://get.pimoroni.com/resources/github-repo-terminal.png
    :alt: Finding the terminal
 
 In the new terminal window type the command exactly as it appears below
@@ -98,14 +97,19 @@ In all cases you will have to enable the i2c bus.
 Documentation & Support
 -----------------------
 
--  Guides and tutorials
-     * https://learn.pimoroni.com/automation-hat
-     * https://learn.pimoroni.com/automation-phat
+-  Guides and tutorials https://learn.pimoroni.com/automation-hat
+   https://learn.pimoroni.com/automation-phat
 -  Function reference
-     * https://github.com/pimoroni/automation-hat/tree/master/documentation
--  GPIO Pinout
-     * https://pinout.xyz/pinout/automation\_hat
-     * https://pinout.xyz/pinout/automation\_phat
--  Get help
-     * http://forums.pimoroni.com/c/support
+   https://github.com/pimoroni/automation-hat/tree/master/documentation
+-  GPIO Pinout https://pinout.xyz/pinout/automation\_hat
+   https://pinout.xyz/pinout/automation\_phat
+-  Get help http://forums.pimoroni.com/c/support
 
+.. |Build Status| image:: https://travis-ci.com/pimoroni/automation-hat.svg?branch=master
+   :target: https://travis-ci.com/pimoroni/automation-hat
+.. |Coverage Status| image:: https://coveralls.io/repos/github/pimoroni/automation-hat/badge.svg?branch=master
+   :target: https://coveralls.io/github/pimoroni/automation-hat?branch=master
+.. |PyPi Package| image:: https://img.shields.io/pypi/v/automationhat.svg
+   :target: https://pypi.python.org/pypi/automationhat
+.. |Python Versions| image:: https://img.shields.io/pypi/pyversions/automationhat.svg
+   :target: https://pypi.python.org/pypi/automationhat
