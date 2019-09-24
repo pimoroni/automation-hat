@@ -1,4 +1,10 @@
 ![Automation HAT](autohat_360.png)
+[![Build Status](https://travis-ci.com/pimoroni/automation-hat.svg?branch=master)](https://travis-ci.com/pimoroni/automation-hat)
+[![Coverage Status](https://coveralls.io/repos/github/pimoroni/automation-hat/badge.svg?branch=master)](https://coveralls.io/github/pimoroni/automation-hat?branch=master)
+[![PyPi Package](https://img.shields.io/pypi/v/automationhat.svg)](https://pypi.python.org/pypi/automationhat)
+[![Python Versions](https://img.shields.io/pypi/pyversions/automationhat.svg)](https://pypi.python.org/pypi/automationhat)
+
+
 https://shop.pimoroni.com/products/automation-hat
 https://shop.pimoroni.com/products/automation-phat
 
