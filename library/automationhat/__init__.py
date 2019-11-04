@@ -117,7 +117,7 @@ class AnalogInput(object):
             warnings.warn("Analog Four is not supported on Automation pHAT")
 
         self._update()
-        return round(self.value * self.max_voltage, 2)
+        return round(self.value * self.max_voltage, 3)
 
     def _update(self):
         self.setup()
