@@ -97,6 +97,8 @@ In all cases you will have to enable the i2c bus.
 
 #### What is the accuracy and resolution of the Automation HAT
 
-The ADS1015 is a 12-bit ADC, but the 12th bit is the sign-bit so positive voltages between 0 and 24v (actually 25.85v because of how the resistor divider is set up) so it's closer to 0.012v granularity.
+The ADS1015 is a 12-bit ADC, but since the 12th bit is the sign-bit there are only 11-bits of resolution available for positive voltage readings. The input voltage for 24v channels is scaled from 0-25.85v (25.85 rather than 24 due to how the resistor divider is set up) to 0-3.3v.
 
-Except the full-scale range of the ADC when reading a 0-25.85v value is actually set to 4.096v (not 3.3v) giving only ~1649 possible usable values, which brings us to a granularity of 0.015v (25.85 / 1649) for 24v and 0.002v for the 3.3v inputs. More information on this topic can be found here: <https://forums.pimoroni.com/t/automation-hat-accuracy/7252/3>
+Since the full-scale range of the ADC is set to 4.096v, this means that 0-3.3v gives only ~1649 possible usable values making the input masurement granularity somewhere around 0.015v (25.85 / 1649) for the 24v inputs and 0.002v for the 3.3v input.
+
+More information on this topic can be found here: <https://forums.pimoroni.com/t/automation-hat-accuracy/7252/3>
