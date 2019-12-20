@@ -73,7 +73,7 @@ class ObjectCollection:
 
     def __dir__(self):
         """Returns all items in the collection"""
-        return self._all.keys() + dir(self._all[self._all.keys()[0]])
+        return list(self._all.keys()) + dir(self._all[next(iter(self._all.keys()))])
 
     def __getattr__(self, name):
         """Returns a pin if found by name
@@ -88,6 +88,9 @@ class ObjectCollection:
 
         # Otherwise try to run against all pins
         else:
+            for node in self._index:
+                # Try to find attribute (otherwise an AttributeError will be thrown)
+                getattr(self._all[node], name)
             def handler(*args, **kwargs):
                 return self._do(name, *args, **kwargs)
             handler.__name__ = name
