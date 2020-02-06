@@ -11,7 +11,7 @@ except ImportError:
 from .ads1015 import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 
 RELAY_1 = 13

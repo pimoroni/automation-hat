@@ -70,7 +70,7 @@ classifiers = ['Development Status :: 5 - Production/Stable',
 
 setup(
         name            = 'automationhat',
-        version         = '0.2.0',
+        version         = '0.2.1',
         author          = 'Philip Howard',
         author_email    = 'phil@pimoroni.com',
         description     = 'Automation HAT Driver',
