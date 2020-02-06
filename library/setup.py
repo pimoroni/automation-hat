@@ -70,7 +70,7 @@ classifiers = ['Development Status :: 5 - Production/Stable',
 
 setup(
         name            = 'automationhat',
-        version         = '0.2.1',
+        version         = '0.2.2',
         author          = 'Philip Howard',
         author_email    = 'phil@pimoroni.com',
         description     = 'Automation HAT Driver',
@@ -82,6 +82,6 @@ setup(
         py_modules      = [],
         packages        = ['automationhat'],
         include_package_data = True,
-        install_requires= ['RPi.GPIO','sn3218','ST7789'],
+        install_requires= ['RPi.GPIO','sn3218','ST7735'],
         cmdclass        = {'test': TestCommand, 'testandbuild':BuildWithTests}
 )

@@ -1,3 +1,8 @@
+0.2.2
+-----
+
+* Had ST7789 on the brain, swapped for ST7735
+
 0.2.1
 -----
 
