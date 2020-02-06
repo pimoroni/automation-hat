@@ -82,6 +82,6 @@ setup(
         py_modules      = [],
         packages        = ['automationhat'],
         include_package_data = True,
-        install_requires= ['RPi.GPIO','sn3218'],
+        install_requires= ['RPi.GPIO','sn3218','ST7789'],
         cmdclass        = {'test': TestCommand, 'testandbuild':BuildWithTests}
 )
