@@ -20,8 +20,8 @@ try:
     from fonts.ttf import RobotoBlackItalic as UserFont
 except ImportError:
     print("""This example requires the Roboto font.
-Install with: sudo pip3 install fonts font-roboto
-""")
+Install with: sudo pip{v} install fonts font-roboto
+""".format(v="" if sys.version_info.major == 2 else sys.version_info.major))
     sys.exit(1)
 
 print("""analog.py
@@ -68,7 +68,7 @@ while True:
     # Draw the text and bar for each channel in turn.
     for channel in range(3):
         reading = automationhat.analog[channel].read()
-        draw.text((text_x, text_y + offset), f"{reading:.2f}", font=font, fill=colour)
+        draw.text((text_x, text_y + offset), "{reading:.2f}".format(reading=reading), font=font, fill=colour)
 
         # Scale bar dependent on channel reading.
         width = int(bar_width * (reading / 24.0))
