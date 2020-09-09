@@ -89,6 +89,7 @@ In all cases you will have to enable the i2c bus.
 * Function reference
 <https://github.com/pimoroni/automation-hat/tree/master/documentation>
 * GPIO Pinout:
+  * Automation HAT Mini: <https://pinout.xyz/pinout/automation_hat_mini>
   * Automation HAT: <https://pinout.xyz/pinout/automation_hat>
   * Automation pHAT: <https://pinout.xyz/pinout/automation_phat>
 * Get help
