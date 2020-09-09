@@ -9,8 +9,9 @@ Automation HAT/pHAT is a home monitoring and automation controller featuring rel
 
 ### Where to buy
 
+* Pimoroni Automation HAT Mini <https://pinout.xyz/pinout/automation_hat_mini>
 * Pimoroni Automation HAT <https://shop.pimoroni.com/products/automation-hat>
-* Pimoroni Automation pHAT <https://shop.pimoroni.com/products/automation-phat>
+* [DISCONTINUED] Pimoroni Automation pHAT <https://shop.pimoroni.com/products/automation-phat>
 
 ## Installing
 
