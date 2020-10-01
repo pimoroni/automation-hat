@@ -5,19 +5,19 @@
 [![PyPi Package](https://img.shields.io/pypi/v/automationhat.svg)](https://pypi.python.org/pypi/automationhat)
 [![Python Versions](https://img.shields.io/pypi/pyversions/automationhat.svg)](https://pypi.python.org/pypi/automationhat)
 
-Automation HAT/pHAT is a home monitoring and automation controller featuring relays, analog channels, powered outputs, and buffered inputs (all 24V tolerant).
+Automation HAT is a home monitoring and automation controller featuring relays, analog channels, powered outputs, and buffered inputs (all 24V tolerant).  This library will also work with Automation HAT's smaller siblings - Automation pHAT and Automation HAT Mini.
 
 ### Where to buy
 
-* Pimoroni Automation HAT Mini <https://pinout.xyz/pinout/automation_hat_mini>
-* Pimoroni Automation HAT <https://shop.pimoroni.com/products/automation-hat>
-* [DISCONTINUED] Pimoroni Automation pHAT <https://shop.pimoroni.com/products/automation-phat>
+* Pimoroni Automation HAT: <https://shop.pimoroni.com/products/automation-hat>
+* Pimoroni Automation HAT Mini: <https://shop.pimoroni.com/products/automation-hat-mini>
+* [DISCONTINUED] Pimoroni Automation pHAT: <https://shop.pimoroni.com/products/automation-phat>
 
 ## Installing
 
 ### Full install (recommended)
 
-We've created an easy installation script that will install all pre-requisites and get your Automation HAT/pHAT
+We've created an easy installation script that will install all pre-requisites and get your Automation HAT, pHAT or HAT Mini
 up and running with minimal efforts. To run it, fire up Terminal which you'll find in Menu -> Accessories -> Terminal
 on your Raspberry Pi desktop, as illustrated below:
 
@@ -37,7 +37,7 @@ sudo apt-get install pimoroni
 
 (you will find the Dashboard under 'Accessories' too, in the Pi menu - or just run `pimoroni-dashboard` at the command line)
 
-If you choose to download examples you'll find them in `/home/pi/Pimoroni/automationhat/`.
+If you choose to download examples you'll find them in `/home/pi/Pimoroni/automationhat/`. 
 
 ### Manual install
 
@@ -84,14 +84,15 @@ In all cases you will have to enable the i2c bus.
 ## Documentation & Support
 
 * Guides and tutorials:
-  * Automation HAT <https://learn.pimoroni.com/automation-hat>
-  * Automation pHAT <https://learn.pimoroni.com/automation-phat>
+  * Automation HAT: <https://learn.pimoroni.com/automation-hat>
+  * Automation pHAT: <https://learn.pimoroni.com/automation-phat>
+  * Automation HAT Mini: <https://learn.pimoroni.com/automation-hat-mini> 
 * Function reference
 <https://github.com/pimoroni/automation-hat/tree/master/documentation>
 * GPIO Pinout:
-  * Automation HAT Mini: <https://pinout.xyz/pinout/automation_hat_mini>
   * Automation HAT: <https://pinout.xyz/pinout/automation_hat>
   * Automation pHAT: <https://pinout.xyz/pinout/automation_phat>
+  * Automation HAT Mini: <https://pinout.xyz/pinout/automation_hat_mini>
 * Get help
 <http://forums.pimoroni.com/c/support>
 
@@ -101,6 +102,6 @@ In all cases you will have to enable the i2c bus.
 
 The ADS1015 is a 12-bit ADC, but since the 12th bit is the sign-bit there are only 11-bits of resolution available for positive voltage readings. The input voltage for 24v channels is scaled from 0-25.85v (25.85 rather than 24 due to how the resistor divider is set up) to 0-3.3v.
 
-Since the full-scale range of the ADC is set to 4.096v, this means that 0-3.3v gives only ~1649 possible usable values making the input masurement granularity somewhere around 0.015v (25.85 / 1649) for the 24v inputs and 0.002v for the 3.3v input.
+Since the full-scale range of the ADC is set to 4.096v, this means that 0-3.3v gives only ~1649 possible usable values making the input measurement granularity somewhere around 0.015v (25.85 / 1649) for the 24v inputs and 0.002v for the 3.3v input.
 
 More information on this topic can be found here: <https://forums.pimoroni.com/t/automation-hat-accuracy/7252/3>
