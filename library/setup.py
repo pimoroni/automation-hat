@@ -58,30 +58,7 @@ class TestCommand(Command):
         else:
             print("notice  automated tests skipped!")
 
-classifiers = ['Development Status :: 5 - Production/Stable',
-               'Operating System :: POSIX :: Linux',
-               'License :: OSI Approved :: MIT License',
-               'Intended Audience :: Developers',
-               'Programming Language :: Python :: 2.6',
-               'Programming Language :: Python :: 2.7',
-               'Programming Language :: Python :: 3',
-               'Topic :: Software Development',
-               'Topic :: System :: Hardware']
 
 setup(
-        name            = 'automationhat',
-        version         = '0.2.2',
-        author          = 'Philip Howard',
-        author_email    = 'phil@pimoroni.com',
-        description     = 'Automation HAT Driver',
-        long_description= open('README.rst').read() + "\n" + open('CHANGELOG.txt').read(),
-        license         = 'MIT',
-        keywords        = ['Raspberry Pi', 'automation controller'],
-        url             = 'http://www.pimoroni.com',
-        classifiers     = classifiers,
-        py_modules      = [],
-        packages        = ['automationhat'],
-        include_package_data = True,
-        install_requires= ['RPi.GPIO','sn3218','ST7735'],
         cmdclass        = {'test': TestCommand, 'testandbuild':BuildWithTests}
 )
