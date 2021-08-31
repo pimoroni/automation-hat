@@ -11,6 +11,7 @@ Press CTRL+C to exit.
 """)
 
 while True:
-    value = automationhat.analog.one.read()
-    print(value)
-    time.sleep(0.25)
+    one = automationhat.analog.one.read()
+    two = automationhat.analog.two.read()
+    print(one, two)
+    time.sleep(0.5)
