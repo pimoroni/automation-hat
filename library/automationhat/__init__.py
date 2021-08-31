@@ -9,6 +9,7 @@ except ImportError:
     raise ImportError("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
 
 from .ads1015 import ads1015
+from .ads1115 import ads1115
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
 __version__ = '0.2.2'
@@ -26,10 +27,14 @@ OUTPUT_1 = 5
 OUTPUT_2 = 12
 OUTPUT_3 = 6
 
+ADC_ADS1015 = 0
+ADC_ADS1115 = 1
+
 UPDATES_PER_SECOND = 30
 
 i2c = None
 sn3218 = None
+_adc = None
 
 automation_hat = False
 automation_phat = True
@@ -38,6 +43,28 @@ _led_states = [0] * 18
 _lights_need_updating = False
 _is_setup = False
 _t_update_lights = None
+
+
+class ADC(object):
+    def __init__(self, i2c):
+        self._ads1015 = ads1015(i2c)
+        self._ads1115 = ads1115(i2c)
+        time.sleep(0.1)
+        self._selected = self._ads1015
+
+    def read(self, channel):
+        return self._selected.read(channel)
+
+    def available(self):
+        return self._selected.available()
+
+    def _select(self, adc_type=ADC_ADS1015):
+        self._selected = [_adc._ads1015, _adc._ads1115][adc_type]
+
+    @staticmethod
+    def select(adc_type=ADC_ADS1015):
+        setup()
+        _adc._select(adc_type)
 
 
 class SNLight(object):
@@ -121,7 +148,7 @@ class AnalogInput(object):
 
     def _update(self):
         self.setup()
-        self.value = _ads1015.read(self.channel)
+        self.value = _adc.read(self.channel)
 
         if self._en_auto_lights:
             adc = self.value
@@ -333,7 +360,7 @@ def enable_auto_lights(state):
 
 
 def setup():
-    global automation_hat, automation_phat, sn3218, _ads1015, _is_setup, _t_update_lights
+    global automation_hat, automation_phat, sn3218, _adc, _is_setup, _t_update_lights
 
     if _is_setup:
         return True
@@ -351,9 +378,9 @@ def setup():
         elif version_info[0] == 3:
             raise ImportError("This library requires python3-smbus\nInstall with: sudo apt install python3-smbus")
 
-    _ads1015 = ads1015(smbus.SMBus(1))
+    _adc = ADC(smbus.SMBus(1))
 
-    if _ads1015.available() is False:
+    if _adc.available() is False:
         raise RuntimeError("No ADC detected, check your connections")
 
     try:
