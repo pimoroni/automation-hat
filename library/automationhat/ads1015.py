@@ -3,6 +3,12 @@ from threading import Lock
 import time
 
 
+try:
+    ADS1015TimeoutError = TimeoutError
+except NameError:
+    from socket import timeout as ADS1015TimeoutError
+
+
 def synchronized(func):
 
     @wraps(func)
@@ -48,7 +54,7 @@ class ads1015:
         return (status & (1 << 15)) == 0
 
     @synchronized
-    def read(self, channel=0):
+    def read(self, channel=0, timeout=5.0):
         """Read a single ADC channel."""
         programmable_gain = PGA_4_096V
         samples_per_second = 250
@@ -76,6 +82,8 @@ class ads1015:
         while self.busy():
             # We've got a lock on the I2S bus, but probably don't want to hog it!
             time.sleep(1.0 / 160)
+            if time.time() - t_start > timeout:
+                raise ADS1015TimeoutError("Timed out waiting for conversion.")
 
         t_end = time.time()
         t_elapsed = t_end - t_start
