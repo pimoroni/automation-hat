@@ -9,7 +9,7 @@ usage:
 	@echo "install:       install the library locally from source"
 	@echo "uninstall:     uninstall the local library"
 	@echo "check:         peform basic integrity checks on the codebase"
-	@echo "python-readme: generate library/README.rst from README.md"
+	@echo "python-readme: generate library/README.md from README.md"
 	@echo "python-wheels: build python .whl files for distribution"
 	@echo "python-sdist:  build python source distribution"
 	@echo "python-clean:  clean python build and dist directories"
