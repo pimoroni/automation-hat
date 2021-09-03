@@ -1,3 +1,15 @@
+0.3.0
+-----
+
+* Switch to setup.cfg
+* Switch to markdown based README
+* Support for ADS1115 board variant
+
+0.2.3
+-----
+
+* 0.2.2 + bump for newer examples
+
 0.2.2
 -----
 
