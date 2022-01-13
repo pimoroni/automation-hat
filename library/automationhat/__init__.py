@@ -8,7 +8,7 @@ try:
 except ImportError:
     raise ImportError("This library requires the RPi.GPIO module\nInstall with: sudo pip install RPi.GPIO")
 
-from .ads1015 import ads1015
+import ads1015
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
 __version__ = '0.3.0'
@@ -38,6 +38,7 @@ _led_states = [0] * 18
 _lights_need_updating = False
 _is_setup = False
 _t_update_lights = None
+_ads1015 = None
 
 
 class SNLight(object):
@@ -121,7 +122,7 @@ class AnalogInput(object):
 
     def _update(self):
         self.setup()
-        self.value = _ads1015.read(self.channel)
+        self.value = _ads1015.get_voltage(self.channel) / 3.3
 
         if self._en_auto_lights:
             adc = self.value
@@ -351,15 +352,34 @@ def setup():
         elif version_info[0] == 3:
             raise ImportError("This library requires python3-smbus\nInstall with: sudo apt install python3-smbus")
 
-    _ads1015 = ads1015(smbus.SMBus(1))
+    try:
+        import ads1015
+    except ImportError:
+        if version_info[0] < 3:
+            raise ImportError("This library requires ads1015\nInstall with: sudo python -m pip install ads1015")
+        elif version_info[0] == 3:
+            raise ImportError("This library requires ads1015\nInstall with: sudo python3 -m pip install ads1015")
 
-    if _ads1015.available() is False:
+    _ads1015 = ads1015.ADS1015()
+    try:
+        chip_type = _ads1015.detect_chip_type()
+    except IOError:
         raise RuntimeError("No ADC detected, check your connections")
+
+    if chip_type == 'ADS1015':
+        _ads1015.set_sample_rate(1600)
+    else:
+        _ads1015.set_sample_rate(860)
+
+    _ads1015.set_programmable_gain(4.096)
 
     try:
         import sn3218
     except ImportError:
-        raise ImportError("This library requires sn3218\nInstall with: sudo pip install sn3218")
+        if version_info[0] < 3:
+            raise ImportError("This library requires sn3218\nInstall with: sudo python -m pip install sn3218")
+        elif version_info[0] == 3:
+            raise ImportError("This library requires sn3218\nInstall with: sudo python3 -m pip install sn3218")
     except IOError:
         pass
 
