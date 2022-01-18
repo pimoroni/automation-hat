@@ -130,7 +130,7 @@ class AnalogInput(object):
 
     def _update(self):
         self.setup()
-        self.value = _ads1015.get_voltage(self.channel) / 3.3
+        self.value = _ads1015.get_voltage("in{}/gnd".format(self.channel)) / 3.3
 
         if self._en_auto_lights:
             adc = self.value
