@@ -37,7 +37,7 @@ sudo apt-get install pimoroni
 
 (you will find the Dashboard under 'Accessories' too, in the Pi menu - or just run `pimoroni-dashboard` at the command line)
 
-If you choose to download examples you'll find them in `/home/pi/Pimoroni/automationhat/`. 
+If you choose to download examples you'll find them in `/home/pi/Pimoroni/automationhat/`.
 
 ### Manual install
 
@@ -86,7 +86,7 @@ In all cases you will have to enable the i2c bus.
 * Guides and tutorials:
   * Automation HAT: <https://learn.pimoroni.com/automation-hat>
   * Automation pHAT: <https://learn.pimoroni.com/automation-phat>
-  * Automation HAT Mini: <https://learn.pimoroni.com/automation-hat-mini> 
+  * Automation HAT Mini: <https://learn.pimoroni.com/automation-hat-mini>
 * Function reference
 <https://github.com/pimoroni/automation-hat/tree/master/documentation>
 * GPIO Pinout:
@@ -107,6 +107,11 @@ Since the full-scale range of the ADC is set to 4.096v, this means that 0-3.3v g
 More information on this topic can be found here: <https://forums.pimoroni.com/t/automation-hat-accuracy/7252/3>
 
 # Changelog
+0.4.0
+-----
+
+* Switch to ADS1X15 library
+
 0.3.0
 -----
 
