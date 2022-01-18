@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import time
 
@@ -16,6 +17,8 @@ Install with: sudo apt install python{v}-pil
 
 import ST7735 as ST7735
 
+IMAGE_PATH = os.path.join(os.path.dirname(__file__), "images")
+
 print("""output.py
 
 This Automation HAT Mini example toggles and displays the
@@ -26,7 +29,7 @@ Press CTRL+C to exit.
 
 def draw_states(channels):
     # Open our background image.
-    image = Image.open("images/outputs-blank.jpg")
+    image = Image.open(os.path.join(IMAGE_PATH, "outputs-blank.jpg"))
     draw = ImageDraw.Draw(image)
     offset = 0
 
