@@ -1,3 +1,8 @@
+0.4.0
+-----
+
+* Switch to ADS1X15 library
+
 0.3.0
 -----
 
