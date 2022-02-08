@@ -17,6 +17,11 @@ try:
 except ImportError:
     raise ImportError("This library requires ads1015\nInstall with: sudo python3 -m pip install ads1015")
 
+try:
+    import sn3218
+except ImportError:
+    raise ImportError("This library requires sn3218\nInstall with: sudo python3 -m pip install sn3218")
+
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
 __version__ = '0.4.0'
@@ -37,7 +42,7 @@ OUTPUT_3 = 6
 UPDATES_PER_SECOND = 30
 
 i2c = None
-sn3218 = None
+lights = None
 
 automation_hat = False
 automation_phat = True
@@ -88,8 +93,8 @@ class SNLight(object):
 
         if value >= 0 and value <= 1.0:
             _led_states[self.index] = int(self._max_brightness * value)
-            if _t_update_lights is None and sn3218 is not None:
-                sn3218.output(_led_states)
+            if _t_update_lights is None and lights is not None:
+                lights.output(_led_states)
             else:
                 _lights_need_updating = True
 
@@ -302,7 +307,7 @@ def _update_lights():
     input.read()
 
     if _lights_need_updating:
-        sn3218.output(_led_states)
+        lights.output(_led_states)
         _lights_need_updating = False
 
     time.sleep(1.0 / UPDATES_PER_SECOND)
@@ -310,12 +315,12 @@ def _update_lights():
 
 def is_automation_hat():
     setup()
-    return sn3218 is not None
+    return lights is not None
 
 
 def is_automation_phat():
     setup()
-    return sn3218 is None
+    return lights is None
 
 
 def enable_auto_lights(state):
@@ -323,7 +328,7 @@ def enable_auto_lights(state):
 
     setup()
 
-    if sn3218 is None:
+    if lights is None:
         return
 
     input.auto_light(state)
@@ -342,7 +347,7 @@ def enable_auto_lights(state):
 
 
 def setup():
-    global automation_hat, automation_phat, sn3218, _ads1015, _is_setup, _t_update_lights
+    global automation_hat, automation_phat, lights, _ads1015, _is_setup, _t_update_lights
 
     if _is_setup:
         return True
@@ -365,16 +370,15 @@ def setup():
 
     _ads1015.set_programmable_gain(4.096)
 
+
     try:
-        import sn3218
-    except ImportError:
-        raise ImportError("This library requires sn3218\nInstall with: sudo python3 -m pip install sn3218")
-    except IOError:
+        lights = sn3218.SN3218()
+    except (IOError, OSError):
         pass
 
-    if sn3218 is not None:
-        sn3218.enable()
-        sn3218.enable_leds(0b111111111111111111)
+    if lights is not None:
+        lights.enable()
+        lights.enable_leds(0b111111111111111111)
         automation_hat = True
         automation_phat = False
         _t_update_lights = AsyncWorker(_update_lights)
@@ -388,8 +392,8 @@ def _exit():
         _t_update_lights.stop()
         _t_update_lights.join()
 
-    if sn3218 is not None:
-        sn3218.output([0] * 18)
+    if lights is not None:
+        lights.output([0] * 18)
 
     GPIO.cleanup()
 
