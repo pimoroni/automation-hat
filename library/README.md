@@ -107,6 +107,11 @@ Since the full-scale range of the ADC is set to 4.096v, this means that 0-3.3v g
 More information on this topic can be found here: <https://forums.pimoroni.com/t/automation-hat-accuracy/7252/3>
 
 # Changelog
+0.4.1
+-----
+
+* Update for SN3218 v2.0.0
+
 0.4.0
 -----
 

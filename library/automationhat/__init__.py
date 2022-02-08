@@ -24,7 +24,7 @@ except ImportError:
 
 from .pins import ObjectCollection, AsyncWorker, StoppableThread
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 
 RELAY_1 = 13
