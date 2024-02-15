@@ -2,25 +2,9 @@ import atexit
 import time
 import warnings
 
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    raise ImportError("This library requires the RPi.GPIO module\nInstall with: sudo python3 -m pip install RPi.GPIO")
-
-try:
-    import smbus
-except ImportError:
-    raise ImportError("This library requires python3-smbus\nInstall with: sudo apt install python3-smbus")
-
-try:
-    import ads1015
-except ImportError:
-    raise ImportError("This library requires ads1015\nInstall with: sudo python3 -m pip install ads1015")
-
-try:
-    import sn3218
-except ImportError:
-    raise ImportError("This library requires sn3218\nInstall with: sudo python3 -m pip install sn3218")
+import ads1015
+import RPi.GPIO as GPIO
+import sn3218
 
 from .pins import AsyncWorker, ObjectCollection, StoppableThread
 
