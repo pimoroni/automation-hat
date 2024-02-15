@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import signal
-import time
 
 import automationhat
 

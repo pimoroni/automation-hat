@@ -5,8 +5,6 @@ import time
 
 import automationhat
 
-time.sleep(0.1) # Short pause after ads1015 class creation recommended
-
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:

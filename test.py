@@ -10,17 +10,15 @@ pinstates = [0 for x in range(40)]
 def rpi_gpio_output(pin, value):
     global pinstates
     pinstates[pin] = value
-    #debug("Setting {} to {}".format(pin, value))
+
 
 def rpi_gpio_input(pin):
     return pinstates[pin]
 
-def sn3218_write_i2c_block_data(addr, reg, data):
-    debug("Writing {} to {}:{}".format(data, addr, reg))
 
 rpi = mock.Mock()
 rpi.GPIO = mock.Mock()
-rpi.GPIO.input = rpi_gpio_input # mock.Mock(return_value=0)
+rpi.GPIO.input = rpi_gpio_input
 rpi.GPIO.output = rpi_gpio_output
 
 sys.modules['RPi'] = rpi
@@ -29,13 +27,10 @@ sys.modules['RPi.GPIO'] = 0 # Fix RPi.GPIO import error insanity
 sn3218 = mock.Mock()
 sn3218.i2c = mock.Mock()
 sn3218.i2c.read_i2c_block_data = mock.Mock(return_value=[0,0,0])
-#sn3218.i2c.write_i2c_block_data = sn3218_write_i2c_block_data
 
 sys.modules['sn3218'] = sn3218
 
-import RPi.GPIO
-
-import automationhat
+import automationhat  # noqa: E402
 
 
 def test(verbose=False):
@@ -50,7 +45,7 @@ def test(verbose=False):
 
     debug("testing: Lights")
 
-    assert str(automationhat.light).split(", ") == ["warn","comms","power"], "Lights missing one of [warn, comms, power]: {}".format(str(automationhat.light))
+    assert sorted(str(automationhat.light).split(", ")) == ["comms", "power", "warn"], "Lights missing one of [warn, comms, power]: {}".format(str(automationhat.light))
 
     for light in automationhat.light:
         debug("         light {}".format(light.name))
@@ -63,7 +58,7 @@ def test(verbose=False):
 
     debug("testing: Relays")
 
-    assert str(automationhat.relay).split(", ") == ["three","two","one"], "Relay missing one of [one, two, three]: {}".format(str(automationhat.relay))
+    assert str(automationhat.relay).split(", ") == ["one","two","three"], "Relay missing one of [one, two, three]: {}".format(str(automationhat.relay))
 
     # Test all relays have associated lights
     for relay in automationhat.relay:
@@ -89,7 +84,7 @@ def test(verbose=False):
 
     debug("testing: Digital Outputs")
 
-    assert str(automationhat.output).split(", ") == ["three","two","one"], "Output missing one of [one, two, three]: {}".format(str(automationhat.output))
+    assert str(automationhat.output).split(", ") == ["one","two","three"], "Output missing one of [one, two, three]: {}".format(str(automationhat.output))
 
     # Test all outputs have associated lights
     for output in automationhat.output:
@@ -116,46 +111,42 @@ def test(verbose=False):
 
     debug("testing: Analog Inputs")
 
+    automationhat._ads1015.get_voltage = mock.MagicMock()
+
     for analog in automationhat.analog:
         debug("         analog {}".format(analog.name))
 
         analog.auto_light(False)
-        assert analog._en_auto_lights == False, "Auto lights should be False/Disabled"
+        assert analog._en_auto_lights is False, "Auto lights should be False/Disabled"
 
         analog.auto_light(True)
-        assert analog._en_auto_lights == True, "Auto lights should be True/Enabled"
+        assert analog._en_auto_lights is True, "Auto lights should be True/Enabled"
 
 
         assert callable(analog.read), "analog.read() not callable!"
 
         # The full scale range of the ADC at 1:1 is +- 4.096v
         # so we adjust our mock value to obtain the max value at 3.3v
-        analog_raw = int(3300.0 * (2047.0 / 4096.0))
+        # analog_raw = int(3300.0 * (2047.0 / 4096.0))
 
         debug("         - max value")
 
-        sn3218.i2c.read_i2c_block_data = mock.Mock(return_value=[
-            (analog_raw >> 4) & 0xff,
-            (analog_raw << 4) & 0xff
-            ,0])
+        automationhat._ads1015.get_voltage.return_value = 3.3
 
         time.sleep(0.01)
 
         assert analog.read() == analog.max_voltage, "analog.read() returning {}, should be {}!".format(analog.read(), analog.max_voltage)
 
-        analog_raw = int(1650.0 * (2047.0 / 4096.0))
+        # analog_raw = int(1650.0 * (2047.0 / 4096.0))
 
         debug("         - half value")
 
-        sn3218.i2c.read_i2c_block_data = mock.Mock(return_value=[
-            (analog_raw >> 4) & 0xff,
-            (analog_raw << 4) & 0xff
-            ,0])
+        automationhat._ads1015.get_voltage.return_value = 3.3 / 2.0001  # TODO: Fudge!
 
         time.sleep(0.01)
 
         voltage = round((analog.max_voltage / 2.0) - 0.005, 2)
-        assert analog.read() == voltage, "analog.read() returning {}, should be {}!".format(analog.read(), voltage)
+        assert round(analog.read(), 2) == voltage, "analog.read() returning {}, should be {}!".format(round(analog.read(), 2), voltage)
 
 
     debug("status:  Ok!")

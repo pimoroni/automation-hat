@@ -6,7 +6,7 @@ import ads1015
 import RPi.GPIO as GPIO
 import sn3218
 
-from .pins import AsyncWorker, ObjectCollection, StoppableThread
+from .pins import AsyncWorker, ObjectCollection, StoppableThread  # noqa: F401
 
 __version__ = '0.4.1'
 
@@ -72,7 +72,7 @@ class SNLight(object):
         if self.index is None:
             return
 
-        if type(value) is not int and type(value) is not float:
+        if not isinstance(value, (int, float)):
             raise TypeError("Value must be int or float")
 
         if value >= 0 and value <= 1.0:

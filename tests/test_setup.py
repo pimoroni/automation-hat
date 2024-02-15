@@ -1,8 +1,3 @@
-import sys
-
-import mock
-
-
 def test_setup(gpio, smbus, sn3218, ads1015, automationhat):
     automationhat.setup()
 
