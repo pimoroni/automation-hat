@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import time
 import sys
+import time
 
 import mock
-
 
 pinstates = [0 for x in range(40)]
 
@@ -37,6 +36,7 @@ sys.modules['sn3218'] = sn3218
 import RPi.GPIO
 
 import automationhat
+
 
 def test(verbose=False):
 

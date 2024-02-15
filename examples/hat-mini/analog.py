@@ -4,10 +4,11 @@ import sys
 import time
 
 import automationhat
+
 time.sleep(0.1) # Short pause after ads1015 class creation recommended
 
 try:
-    from PIL import Image, ImageFont, ImageDraw
+    from PIL import Image, ImageDraw, ImageFont
 except ImportError:
     print("""This example requires PIL.
 Install with: sudo apt install python{v}-pil

@@ -22,7 +22,7 @@ try:
 except ImportError:
     raise ImportError("This library requires sn3218\nInstall with: sudo python3 -m pip install sn3218")
 
-from .pins import ObjectCollection, AsyncWorker, StoppableThread
+from .pins import AsyncWorker, ObjectCollection, StoppableThread
 
 __version__ = '0.4.1'
 
