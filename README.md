@@ -105,3 +105,4 @@ The ADS1015 is a 12-bit ADC, but since the 12th bit is the sign-bit there are on
 Since the full-scale range of the ADC is set to 4.096v, this means that 0-3.3v gives only ~1649 possible usable values making the input measurement granularity somewhere around 0.015v (25.85 / 1649) for the 24v inputs and 0.002v for the 3.3v input.
 
 More information on this topic can be found here: <https://forums.pimoroni.com/t/automation-hat-accuracy/7252/3>
+
