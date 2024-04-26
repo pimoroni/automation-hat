@@ -17,7 +17,7 @@ Automation HAT is a home monitoring and automation controller featuring relays, 
 
 ### Full install (recommended):
 
-We've created an easy installation script that will install all pre-requisites and get your BME680
+We've created an easy installation script that will install all pre-requisites and get your Automation HAT
 up and running with minimal efforts. To run it, fire up Terminal which you'll find in Menu -> Accessories -> Terminal
 on your Raspberry Pi desktop, as illustrated below:
 
@@ -47,10 +47,11 @@ cd automationhat-python
 ./install.sh --unstable
 ```
 
-In all cases you will have to enable the i2c bus:
+In all cases you will have to enable the I2C bus (and SPI for Automation HAT Mini):
 
 ```
 sudo raspi-config nonint do_i2c 0
+sudo raspi-config nonint do_spi 0
 ```
 
 ## Documentation & Support
