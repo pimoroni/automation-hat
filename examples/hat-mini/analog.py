@@ -35,8 +35,8 @@ Press CTRL+C to exit.
 disp = st7735.ST7735(
     port=0,
     cs=st7735.BG_SPI_CS_FRONT,
-    dc="GPIO9",
-    backlight="GPIO25",
+    dc=9,
+    backlight=25,
     rotation=270,
     spi_speed_hz=4000000
 )
