@@ -1,4 +1,4 @@
-![Automation HAT](autohat_360.png)
+![Automation HAT](https://github.com/pimoroni/automation-hat/blob/main/autohat_360.png)
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/pimoroni/automation-hat/test.yml?branch=main)](https://github.com/pimoroni/automation-hat/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/pimoroni/automation-hat/badge.svg?branch=main)](https://coveralls.io/github/pimoroni/automation-hat?branch=main)
