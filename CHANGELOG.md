@@ -1,3 +1,9 @@
+1.0.0
+-----
+
+* Refactor to gpiod/gpiodevice.
+* Repackage to hatch/pyproject.toml.
+
 0.4.1
 -----
 
