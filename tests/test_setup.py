@@ -1,15 +1,11 @@
-import mock
-import sys
-
-
-def test_setup(gpio, smbus, sn3218, ads1015, automationhat):
+def test_setup(gpio, smbus, sn3218, automationhat):
     automationhat.setup()
 
 
-def test_analog(gpio, smbus, sn3218, ads1015, automationhat):
+def test_analog(gpio, smbus, sn3218, automationhat):
     automationhat.setup()
 
-    ads1015.ADS1015().get_voltage.return_value = 3.3
+    # ads1015.ADS1015().get_voltage.return_value = 3.3
 
     # VCC = 3.3, GAIN = 4.096, FS = 2.027, Max Voltage = 25.85
     # output ~= ((1 << 11) - 1) / 2047.0 * 2096.0 / 3300.0 * 25.85

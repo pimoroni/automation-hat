@@ -2,27 +2,13 @@ import atexit
 import time
 import warnings
 
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    raise ImportError("This library requires the RPi.GPIO module\nInstall with: sudo python3 -m pip install RPi.GPIO")
+import ads1015
+import gpiod
+import gpiodevice
+import sn3218
+from gpiod.line import Bias, Direction, Value
 
-try:
-    import smbus
-except ImportError:
-    raise ImportError("This library requires python3-smbus\nInstall with: sudo apt install python3-smbus")
-
-try:
-    import ads1015
-except ImportError:
-    raise ImportError("This library requires ads1015\nInstall with: sudo python3 -m pip install ads1015")
-
-try:
-    import sn3218
-except ImportError:
-    raise ImportError("This library requires sn3218\nInstall with: sudo python3 -m pip install sn3218")
-
-from .pins import ObjectCollection, AsyncWorker, StoppableThread
+from .pins import AsyncWorker, ObjectCollection, StoppableThread  # noqa: F401
 
 __version__ = '0.4.1'
 
@@ -52,6 +38,7 @@ _lights_need_updating = False
 _is_setup = False
 _t_update_lights = None
 _ads1015 = None
+_gpiochip = None
 
 
 class SNLight(object):
@@ -88,7 +75,7 @@ class SNLight(object):
         if self.index is None:
             return
 
-        if type(value) is not int and type(value) is not float:
+        if not isinstance(value, (int, float)):
             raise TypeError("Value must be int or float")
 
         if value >= 0 and value <= 1.0:
@@ -149,13 +136,14 @@ class Pin(object):
         self.pin = pin
         self._last_value = None
         self._is_setup = False
+        self._gpioline = None
 
     def __call__(self):
         return filter(lambda x: x[0] != '_', dir(self))
 
     def read(self):
         self.setup()
-        return GPIO.input(self.pin)
+        return self._gpioline.get_value(self.pin) == Value.ACTIVE
 
     def setup(self):
         pass
@@ -173,10 +161,10 @@ class Pin(object):
         return False
 
     def is_on(self):
-        return self.read() == 1
+        return self.read() is True
 
     def is_off(self):
-        return self.read() == 0
+        return self.read() is False
 
 
 class Input(Pin):
@@ -192,7 +180,13 @@ class Input(Pin):
             return False
 
         setup()
-        GPIO.setup(self.pin, GPIO.IN)
+
+        self.pin = _gpiochip.line_offset_from_id(self.pin)
+
+        self._gpioline = _gpiochip.request_lines(consumer="AH", config={
+            self.pin: gpiod.LineSettings(direction=Direction.INPUT, bias=Bias.DISABLED)
+        })
+
         self._is_setup = True
 
     def auto_light(self, value=None):
@@ -201,7 +195,8 @@ class Input(Pin):
         return self._en_auto_lights
 
     def read(self):
-        value = Pin.read(self)
+        self.setup()
+        value = self._gpioline.get_value(self.pin) == Value.ACTIVE
         if self._en_auto_lights:
             self.light.write(value)
         return value
@@ -220,7 +215,13 @@ class Output(Pin):
             return False
 
         setup()
-        GPIO.setup(self.pin, GPIO.OUT, initial=0)
+
+        self.pin = _gpiochip.line_offset_from_id(self.pin)
+
+        self._gpioline = _gpiochip.request_lines(consumer="AH", config={
+            self.pin: gpiod.LineSettings(direction=Direction.OUTPUT, bias=Bias.DISABLED, output_value=Value.INACTIVE)
+        })
+
         self._is_setup = True
         return True
 
@@ -235,7 +236,7 @@ class Output(Pin):
         :param value: Value to write, either 1 for HIGH or 0 for LOW
         """
         self.setup()
-        GPIO.output(self.pin, value)
+        self._gpioline.set_value(self.pin, Value.ACTIVE if value else Value.INACTIVE)
         if self._en_auto_lights:
             self.light.write(1 if value else 0)
 
@@ -272,10 +273,15 @@ class Relay(Output):
 
         setup()
 
+        self.pin = _gpiochip.line_offset_from_id(self.pin)
+
         if is_automation_phat() and self.name == "one":
             self.pin = RELAY_3
 
-        GPIO.setup(self.pin, GPIO.OUT, initial=0)
+        self._gpioline = _gpiochip.request_lines(consumer="AH", config={
+            self.pin: gpiod.LineSettings(direction=Direction.OUTPUT, bias=Bias.DISABLED, output_value=Value.INACTIVE)
+        })
+
         self._is_setup = True
         return True
 
@@ -289,7 +295,7 @@ class Relay(Output):
         if is_automation_phat() and self.name in ["two", "three"]:
             warnings.warn("Relay '{}' is not supported on Automation pHAT".format(self.name))
 
-        GPIO.output(self.pin, value)
+        self._gpioline.set_value(self.pin, Value.ACTIVE if value else Value.INACTIVE)
 
         if self._en_auto_lights:
             if value:
@@ -347,15 +353,14 @@ def enable_auto_lights(state):
 
 
 def setup():
-    global automation_hat, automation_phat, lights, _ads1015, _is_setup, _t_update_lights
+    global automation_hat, automation_phat, lights, _ads1015, _is_setup, _t_update_lights, _gpiochip
 
     if _is_setup:
         return True
 
     _is_setup = True
 
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
+    _gpiochip = gpiodevice.find_chip_by_platform()
 
     _ads1015 = ads1015.ADS1015()
     try:
@@ -394,8 +399,6 @@ def _exit():
 
     if lights is not None:
         lights.output([0] * 18)
-
-    GPIO.cleanup()
 
 
 analog = ObjectCollection()

@@ -4,7 +4,6 @@ import sys
 import time
 
 import automationhat
-time.sleep(0.1) # Short pause after ads1015 class creation recommended
 
 try:
     from PIL import Image, ImageDraw
@@ -14,7 +13,7 @@ Install with: sudo apt install python{v}-pil
 """.format(v="" if sys.version_info.major == 2 else sys.version_info.major))
     sys.exit(1)
 
-import ST7735 as ST7735
+import st7735
 
 print("""input.py
 
@@ -25,9 +24,9 @@ Press CTRL+C to exit.
 """)
 
 # Create ST7735 LCD display class.
-disp = ST7735.ST7735(
+disp = st7735.ST7735(
     port=0,
-    cs=ST7735.BG_SPI_CS_FRONT,
+    cs=st7735.BG_SPI_CS_FRONT,
     dc=9,
     backlight=25,
     rotation=270,
