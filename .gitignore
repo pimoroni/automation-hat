@@ -24,3 +24,5 @@ packaging/*.xz
 .vscode/
 .tox
 .coverage
+.venv
+uv.lock
