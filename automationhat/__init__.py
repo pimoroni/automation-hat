@@ -427,4 +427,3 @@ light = ObjectCollection()
 light._add(power=SNLight(17))
 light._add(comms=SNLight(16))
 light._add(warn=SNLight(15))
-
