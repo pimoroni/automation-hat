@@ -67,7 +67,7 @@ while True:
     # Draw the text and bar for each channel in turn.
     for channel in range(3):
         reading = automationhat.analog[channel].read()
-        draw.text((text_x, text_y + offset), "{reading:.2f}".format(reading=reading), font=font, fill=colour)
+        draw.text((text_x, text_y + offset), f"{reading:.2f}", font=font, fill=colour)
 
         # Scale bar dependent on channel reading.
         width = int(bar_width * (reading / 24.0))

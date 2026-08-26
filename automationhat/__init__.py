@@ -1,4 +1,5 @@
 import atexit
+import contextlib
 import time
 import warnings
 
@@ -41,7 +42,7 @@ _ads1015 = None
 _gpiochip = None
 
 
-class SNLight(object):
+class SNLight:
     def __init__(self, index):
         self.index = index
         self._max_brightness = float(128)
@@ -89,7 +90,7 @@ class SNLight(object):
             raise ValueError("Value must be between 0.0 and 1.0")
 
 
-class AnalogInput(object):
+class AnalogInput:
     type = 'Analog Input'
 
     def __init__(self, channel, max_voltage, led):
@@ -115,21 +116,21 @@ class AnalogInput(object):
     def read(self):
         """Return the read voltage of the analog input"""
         if self.name == "four" and is_automation_phat():
-            warnings.warn("Analog Four is not supported on Automation pHAT")
+            warnings.warn("Analog Four is not supported on Automation pHAT", stacklevel=2)
 
         self._update()
         return round(self.value * self.max_voltage, 3)
 
     def _update(self):
         self.setup()
-        self.value = _ads1015.get_voltage("in{}/gnd".format(self.channel)) / 3.3
+        self.value = _ads1015.get_voltage(f"in{self.channel}/gnd") / 3.3
 
         if self._en_auto_lights:
             adc = self.value
             self.light.write(max(0.0, min(1.0, adc)))
 
 
-class Pin(object):
+class Pin:
     type = 'Pin'
 
     def __init__(self, pin):
@@ -293,7 +294,7 @@ class Relay(Output):
         self.setup()
 
         if is_automation_phat() and self.name in ["two", "three"]:
-            warnings.warn("Relay '{}' is not supported on Automation pHAT".format(self.name))
+            warnings.warn(f"Relay '{self.name}' is not supported on Automation pHAT", stacklevel=2)
 
         self._gpioline.set_value(self.pin, Value.ACTIVE if value else Value.INACTIVE)
 
@@ -365,8 +366,8 @@ def setup():
     _ads1015 = ads1015.ADS1015()
     try:
         chip_type = _ads1015.detect_chip_type()
-    except IOError:
-        raise RuntimeError("No ADC detected, check your connections")
+    except OSError:
+        raise RuntimeError("No ADC detected, check your connections") from None
 
     if chip_type == 'ADS1015':
         _ads1015.set_sample_rate(1600)
@@ -376,10 +377,8 @@ def setup():
     _ads1015.set_programmable_gain(4.096)
 
 
-    try:
+    with contextlib.suppress(IOError, OSError):
         lights = sn3218.SN3218()
-    except (IOError, OSError):
-        pass
 
     if lights is not None:
         lights.enable()

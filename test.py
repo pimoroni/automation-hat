@@ -2,8 +2,7 @@
 
 import sys
 import time
-
-import mock
+from unittest import mock
 
 pinstates = [0 for x in range(40)]
 
@@ -45,10 +44,10 @@ def test(verbose=False):
 
     debug("testing: Lights")
 
-    assert sorted(str(automationhat.light).split(", ")) == ["comms", "power", "warn"], "Lights missing one of [warn, comms, power]: {}".format(str(automationhat.light))
+    assert sorted(str(automationhat.light).split(", ")) == ["comms", "power", "warn"], f"Lights missing one of [warn, comms, power]: {automationhat.light!s}"
 
     for light in automationhat.light:
-        debug("         light {}".format(light.name))
+        debug(f"         light {light.name}")
 
         assert callable(light.write), "light.write() not callable"
         assert callable(light.toggle), "light.toggle() not callable"
@@ -58,49 +57,49 @@ def test(verbose=False):
 
     debug("testing: Relays")
 
-    assert str(automationhat.relay).split(", ") == ["one","two","three"], "Relay missing one of [one, two, three]: {}".format(str(automationhat.relay))
+    assert str(automationhat.relay).split(", ") == ["one","two","three"], f"Relay missing one of [one, two, three]: {automationhat.relay!s}"
 
     # Test all relays have associated lights
     for relay in automationhat.relay:
-        debug("         relay {}".format(relay.name))
+        debug(f"         relay {relay.name}")
 
         assert isinstance(relay.light_no, automationhat.SNLight), "Relay missing NO light"
         assert isinstance(relay.light_nc, automationhat.SNLight), "Relay missing NC light"
 
         assert callable(relay.on), "relay.on() not callable"
         relay.on() # Should transition from LOW to HIGH
-        assert pinstates[relay.pin] == 1, "pin {} not set HIGH for Relay {}".format(relay.pin, relay.name)
+        assert pinstates[relay.pin] == 1, f"pin {relay.pin} not set HIGH for Relay {relay.name}"
 
         assert callable(relay.off), "relay.off() not callable"
         relay.off() # Should transition from HIGH to LOW
-        assert pinstates[relay.pin] == 0, "pin {} not set LOW for Relay {}".format(relay.pin, relay.name)
+        assert pinstates[relay.pin] == 0, f"pin {relay.pin} not set LOW for Relay {relay.name}"
 
         assert callable(relay.toggle), "relay.toggle() not callable"
         relay.toggle() # Should transition from LOW to HIGH
-        assert pinstates[relay.pin] == 1, "pin {} not set HIGH for Relay {}".format(relay.pin, relay.name)
+        assert pinstates[relay.pin] == 1, f"pin {relay.pin} not set HIGH for Relay {relay.name}"
         relay.toggle() # Should transition from HIGH to LOW
-        assert pinstates[relay.pin] == 0, "pin {} not set LOW for Relay {}".format(relay.pin, relay.name)
+        assert pinstates[relay.pin] == 0, f"pin {relay.pin} not set LOW for Relay {relay.name}"
 
 
     debug("testing: Digital Outputs")
 
-    assert str(automationhat.output).split(", ") == ["one","two","three"], "Output missing one of [one, two, three]: {}".format(str(automationhat.output))
+    assert str(automationhat.output).split(", ") == ["one","two","three"], f"Output missing one of [one, two, three]: {automationhat.output!s}"
 
     # Test all outputs have associated lights
     for output in automationhat.output:
-        debug("         output {}".format(output.name))
+        debug(f"         output {output.name}")
 
         assert isinstance(output.light, automationhat.SNLight), "Missing SNLight from output"
         output.on()
-        assert pinstates[output.pin] == 1, "pin {} not set HIGH for Output {}".format(output.pin, output.name)
+        assert pinstates[output.pin] == 1, f"pin {output.pin} not set HIGH for Output {output.name}"
         output.off()
-        assert pinstates[output.pin] == 0, "pin {} not set LOW for Output {}".format(output.pin, output.name)
+        assert pinstates[output.pin] == 0, f"pin {output.pin} not set LOW for Output {output.name}"
 
     debug("testing: Digital Inputs")
 
     # Test all inputs have associated lights
     for input in automationhat.input:
-        debug("         input {}".format(input.name))
+        debug(f"         input {input.name}")
 
         assert callable(input.read), "input.read() not callable!"
         assert input.read() == 0, "Input reading HIGH, should be LOW"
@@ -114,7 +113,7 @@ def test(verbose=False):
     automationhat._ads1015.get_voltage = mock.MagicMock()
 
     for analog in automationhat.analog:
-        debug("         analog {}".format(analog.name))
+        debug(f"         analog {analog.name}")
 
         analog.auto_light(False)
         assert analog._en_auto_lights is False, "Auto lights should be False/Disabled"
@@ -135,7 +134,7 @@ def test(verbose=False):
 
         time.sleep(0.01)
 
-        assert analog.read() == analog.max_voltage, "analog.read() returning {}, should be {}!".format(analog.read(), analog.max_voltage)
+        assert analog.read() == analog.max_voltage, f"analog.read() returning {analog.read()}, should be {analog.max_voltage}!"
 
         # analog_raw = int(1650.0 * (2047.0 / 4096.0))
 
@@ -146,7 +145,7 @@ def test(verbose=False):
         time.sleep(0.01)
 
         voltage = round((analog.max_voltage / 2.0) - 0.005, 2)
-        assert round(analog.read(), 2) == voltage, "analog.read() returning {}, should be {}!".format(round(analog.read(), 2), voltage)
+        assert round(analog.read(), 2) == voltage, f"analog.read() returning {round(analog.read(), 2)}, should be {voltage}!"
 
 
     debug("status:  Ok!")
