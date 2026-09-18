@@ -2,6 +2,7 @@ import atexit
 import contextlib
 import time
 import warnings
+from importlib.metadata import PackageNotFoundError, version
 
 import ads1015
 import gpiod
@@ -11,7 +12,10 @@ from gpiod.line import Bias, Direction, Value
 
 from .pins import AsyncWorker, ObjectCollection, StoppableThread  # noqa: F401
 
-__version__ = '1.0.0'
+try:
+    __version__ = version("automationhat")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
 
 
 RELAY_1 = 13
