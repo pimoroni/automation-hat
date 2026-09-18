@@ -81,9 +81,9 @@ class ObjectCollection:
         Otherwise runs named function against all pins"""
 
         # Return the pin if we have it
-        if name in self._all.keys():
+        if name in self._all:
             return self._all[name]
-        if name in self._aliases.keys():
+        if name in self._aliases:
             return self._aliases[name]
 
         # Otherwise try to run against all pins
@@ -110,7 +110,7 @@ class ObjectCollection:
         _results = {}
         for node in self._index:
             handler = getattr(self._all[node], name)
-            if hasattr(handler, '__call__'):
+            if callable(handler):
                 _results[node] = handler(*args, **kwargs)
             else:
                 _results[node] = handler
@@ -140,5 +140,5 @@ class ObjectCollection:
         """Iterate through each item in the collection
         and pass them to "handler" function in turn as
         the sole argument."""
-        for name in self._all.keys():
+        for name in self._all:
             handler(self._all[name])

@@ -1,6 +1,6 @@
 import sys
+from unittest import mock
 
-import mock
 import pytest
 from i2cdevice import MockSMBus
 
@@ -14,13 +14,13 @@ class MySMBus(MockSMBus):
         self.regs[1] = 0b10000000 | 0b01010000
 
     def read_i2c_block_data(self, i2c_address, register, length):
-        if register in (0x00,):
+        if register == 0x00:
             return self.regs[register]
         else:
             return self.regs[register:register + length]
 
     def write_i2c_block_data(self, i2c_address, register, values):
-        if register in (0x00,):
+        if register == 0x00:
             self.regs[register] = values
         else:
             self.regs[register:register + len(values)] = values
